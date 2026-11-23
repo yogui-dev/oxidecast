@@ -1,0 +1,576 @@
+<style>
+  /* Custom additions on top of frame-template */
+  .preview-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #11141c 0%, #1a1f2c 100%);
+    border: 1px solid #2d3748;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    color: #fff;
+  }
+  .brand-badge {
+    background: #FF5722;
+    color: #fff;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tokens-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .token-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .color-swatch {
+    height: 48px;
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  /* Full Mockup App Frame */
+  .app-window {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    margin-bottom: 2.5rem;
+    color: #c9d1d9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .app-titlebar {
+    background: #161b22;
+    padding: 8px 16px;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .app-window-dots {
+    display: flex;
+    gap: 6px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+
+  /* Top Toolbar */
+  .app-toolbar {
+    background: #161b22;
+    padding: 10px 16px;
+    border-bottom: 1px solid #30363d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+  .btn-stream-live {
+    background: linear-gradient(90deg, #FF5722 0%, #E64A19 100%);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(255, 87, 34, 0.4);
+  }
+  .btn-record {
+    background: #21262d;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .telemetry-pills {
+    display: flex;
+    gap: 12px;
+    font-family: monospace;
+    font-size: 11px;
+  }
+  .pill {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pill-green { color: #3fb950; }
+  .pill-orange { color: #f0883e; }
+  .pill-cyan { color: #58a6ff; }
+
+  /* Dual Canvas Area */
+  .dual-canvas-container {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 16px;
+    padding: 20px;
+    background: #090d13;
+    min-height: 480px;
+  }
+  .canvas-box {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .canvas-header {
+    background: #21262d;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #8b949e;
+  }
+  .canvas-screen {
+    flex: 1;
+    position: relative;
+    background: #05070a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Mock layers inside Canvas */
+  .mock-gameplay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4b5563;
+    font-weight: bold;
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+  .mock-cam-overlay {
+    position: absolute;
+    border: 2px solid #FF5722;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.6);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #fff;
+    cursor: move;
+  }
+  .cam-horizontal {
+    bottom: 20px;
+    right: 20px;
+    width: 140px;
+    height: 85px;
+  }
+  .cam-vertical {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 100px;
+  }
+  .mock-chat-overlay {
+    position: absolute;
+    bottom: 20px;
+    left: 15px;
+    right: 15px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 10px;
+    color: #e5e7eb;
+  }
+
+  /* Bottom Control Docks */
+  .app-docks {
+    display: grid;
+    grid-template-columns: 180px 220px 180px 1fr 200px;
+    background: #161b22;
+    border-top: 1px solid #30363d;
+    height: 220px;
+  }
+  .dock-column {
+    border-right: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+  }
+  .dock-column:last-child { border-right: none; }
+  .dock-header {
+    background: #21262d;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #8b949e;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .dock-body {
+    padding: 8px;
+    flex: 1;
+    overflow-y: auto;
+    font-size: 12px;
+  }
+  .list-item {
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background: #0d1117;
+    border: 1px solid transparent;
+  }
+  .list-item.active {
+    background: #238636;
+    color: #fff;
+    font-weight: 600;
+  }
+  .list-item:hover:not(.active) {
+    background: #21262d;
+    border-color: #30363d;
+  }
+
+  /* Audio Fader Bars */
+  .audio-channel {
+    margin-bottom: 10px;
+  }
+  .audio-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  .meter-bg {
+    height: 8px;
+    background: #0d1117;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #30363d;
+  }
+  .meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2ea043 70%, #d29922 85%, #f85149 100%);
+    border-radius: 4px;
+  }
+
+  /* Destination checklist */
+  .dest-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+  .badge-live {
+    background: rgba(63, 185, 80, 0.2);
+    color: #3fb950;
+    border: 1px solid #3fb950;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 9px;
+  }
+</style>
+
+<div class="preview-hero">
+  <div>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+      <h1 style="font-size: 1.8rem; margin: 0; font-weight: 800; letter-spacing: -0.02em;">OxideCast</h1>
+      <span class="brand-badge">Rust + Tauri v2</span>
+      <span style="font-size: 0.8rem; color: #8b949e;">v0.1.0-alpha Concept</span>
+    </div>
+    <p style="margin: 0; color: #8b949e; font-size: 0.95rem;">
+      Suite Broadcast de Nueva Generación: Dual-Canvas Responsivo (16:9 + 9:16) con Cero Sobrecosto y Multistreaming Nativo.
+    </p>
+  </div>
+  <div style="text-align: right;">
+    <div style="font-size: 0.8rem; color: #8b949e;">GPU Target</div>
+    <div style="font-weight: 700; color: #58a6ff; font-size: 1.05rem;">NVIDIA RTX 4050 (NVENC Dual)</div>
+  </div>
+</div>
+
+<h2>1. Maqueta Interactiva del Espacio de Trabajo (Dual-Canvas Workspace)</h2>
+<p class="subtitle">Visualiza cómo se disponen los paneles, lienzos de salida, vúmetros y controles de emisión.</p>
+
+<div class="app-window">
+  <!-- Titlebar -->
+  <div class="app-titlebar">
+    <div class="app-window-dots">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+      <span style="margin-left: 10px; font-weight: 600; color: #8b949e;">OxideCast Studio — [Perfil: 🌴 GTA VI / LoL Stream]</span>
+    </div>
+    <div style="color: #8b949e; font-size: 11px;">Tauri Native Core • Direct3D 11 / wgpu Zero-Copy</div>
+  </div>
+
+  <!-- Top Action Bar -->
+  <div class="app-toolbar">
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button class="btn-stream-live">
+        <span style="width: 8px; height: 8px; background: #fff; border-radius: 50%; display: inline-block;"></span>
+        INICIAR EMISIÓN DUAL
+      </button>
+      <button class="btn-record">⏺ Grabar Master MKV</button>
+      <div style="width: 1px; height: 24px; background: #30363d; margin: 0 4px;"></div>
+      <button style="background: none; border: 1px solid #30363d; color: #c9d1d9; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+        📷 Cámara Virtual (ON)
+      </button>
+    </div>
+
+    <div class="telemetry-pills">
+      <div class="pill pill-green">🟢 RTMP: 14.000 Kbps (Total)</div>
+      <div class="pill pill-cyan">⚡ 60.0 FPS ESTABLES</div>
+      <div class="pill pill-orange">GPU NVENC: 28% (RTX 4050)</div>
+      <div class="pill" style="color: #c9d1d9;">RAM: 54 MB</div>
+    </div>
+  </div>
+
+  <!-- Central Dual Canvas -->
+  <div class="dual-canvas-container">
+    <!-- Horizontal 16:9 Canvas -->
+    <div class="canvas-box">
+      <div class="canvas-header">
+        <span>🖥️ Lienzo Horizontal (16:9 — 1920×1080)</span>
+        <span style="color: #3fb950;">Salidas: YouTube + Twitch + Kick</span>
+      </div>
+      <div class="canvas-screen">
+        <div class="mock-gameplay">
+          [ CAPTURA DE JUEGO: D3D11 / WGC @ 60 FPS ]
+        </div>
+        <div class="mock-cam-overlay cam-horizontal">
+          📷 Webcam (1080p)
+        </div>
+      </div>
+    </div>
+
+    <!-- Vertical 9:16 Canvas -->
+    <div class="canvas-box">
+      <div class="canvas-header">
+        <span>📱 Lienzo Vertical (9:16 — 1080×1920)</span>
+        <span style="color: #f0883e;">Salidas: TikTok Live + Instagram</span>
+      </div>
+      <div class="canvas-screen">
+        <div class="mock-cam-overlay cam-vertical">
+          📷 Webcam (Arriba)
+        </div>
+        <div style="position: absolute; top: 135px; bottom: 85px; left: 0; right: 0; background: rgba(30, 41, 59, 0.7); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #94a3b8; border-top: 1px dashed #475569; border-bottom: 1px dashed #475569;">
+          🎮 Gameplay Centrado Adaptativo
+        </div>
+        <div class="mock-chat-overlay">
+          💬 Chat en vivo dinámico (TikTok / Instagram)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Docks -->
+  <div class="app-docks">
+    <!-- Dock 1: Escenas -->
+    <div class="dock-column">
+      <div class="dock-header">
+        <span>🎬 Escenas</span>
+        <span style="cursor: pointer;">➕</span>
+      </div>
+      <div class="dock-body">
+        <div class="list-item active">🎮 Gameplay Dual</div>
+        <div class="list-item">🗣️ Solo Charla / Facecam</div>
+        <div class="list-item">⏳ Pausa / Volvemos</div>
+        <div class="list-item">🏁 Intro / Cuenta Regresiva</div>
+      </div>
+    </div>
+
+    <!-- Dock 2: Fuentes / Capas -->
+    <div class="dock-column">
+      <div class="dock-header">
+        <span>📑 Fuentes</span>
+        <span style="cursor: pointer;">➕ ⚙️</span>
+      </div>
+      <div class="dock-body">
+        <div class="list-item">
+          <span>🎮 Captura Juego (WGC)</span>
+          <span style="font-size: 10px;">👁️ 🔒</span>
+        </div>
+        <div class="list-item">
+          <span>📷 Sony / Logitech C920</span>
+          <span style="font-size: 10px;">👁️ 🔒</span>
+        </div>
+        <div class="list-item">
+          <span>🌐 Chat Overlay (HTML5)</span>
+          <span style="font-size: 10px;">👁️ 🔒</span>
+        </div>
+        <div class="list-item">
+          <span>🖼️ Marco y Badges Stitch</span>
+          <span style="font-size: 10px;">👁️ 🔒</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dock 3: Transiciones -->
+    <div class="dock-column">
+      <div class="dock-header">
+        <span>⚡ Transición</span>
+      </div>
+      <div class="dock-body">
+        <div style="margin-bottom: 8px;">
+          <label style="font-size: 10px; color: #8b949e; display: block; margin-bottom: 2px;">Tipo de Shader:</label>
+          <select style="width: 100%; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 4px; border-radius: 4px; font-size: 11px;">
+            <option>Shader: Glitch Warp</option>
+            <option selected>Shader: Cinematográfico Fade</option>
+            <option>Shader: Wipe Diagonal</option>
+            <option>Corte Directo (Cut)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size: 10px; color: #8b949e; display: block; margin-bottom: 2px;">Duración (ms):</label>
+          <input type="text" value="300 ms" style="width: 100%; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 4px; border-radius: 4px; font-size: 11px;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Dock 4: Mezclador de Audio DSP -->
+    <div class="dock-column">
+      <div class="dock-header">
+        <span>🎚️ Mezclador de Audio (WASAPI)</span>
+      </div>
+      <div class="dock-body">
+        <div class="audio-channel">
+          <div class="audio-label">
+            <span>🎙️ Micrófono (RNNoise + Limitador)</span>
+            <span style="color: #3fb950;">-4.2 dB</span>
+          </div>
+          <div class="meter-bg"><div class="meter-fill" style="width: 82%;"></div></div>
+        </div>
+        <div class="audio-channel">
+          <div class="audio-label">
+            <span>🔊 Audio de PC / Juego</span>
+            <span style="color: #3fb950;">-12.0 dB</span>
+          </div>
+          <div class="meter-bg"><div class="meter-fill" style="width: 65%;"></div></div>
+        </div>
+        <div class="audio-channel">
+          <div class="audio-label">
+            <span>🎵 Música / Spotify</span>
+            <span style="color: #8b949e;">-18.5 dB</span>
+          </div>
+          <div class="meter-bg"><div class="meter-fill" style="width: 48%;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dock 5: Destinos de Transmisión -->
+    <div class="dock-column">
+      <div class="dock-header">
+        <span>📡 Multistream</span>
+      </div>
+      <div class="dock-body">
+        <div class="dest-row">
+          <span>YouTube (1080p)</span>
+          <span class="badge-live">LIVE</span>
+        </div>
+        <div class="dest-row">
+          <span>Twitch (1080p)</span>
+          <span class="badge-live">LIVE</span>
+        </div>
+        <div class="dest-row">
+          <span>TikTok (Vertical)</span>
+          <span class="badge-live">LIVE</span>
+        </div>
+        <div class="dest-row" style="opacity: 0.5;">
+          <span>Instagram Live</span>
+          <span style="font-size: 9px; color: #8b949e;">STANDBY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2>2. Tokens de Diseño y Estilo Visual</h2>
+<p class="subtitle">Paleta cromática oficial, fuentes tipográficas y set de iconos para el frontend de Tauri v2.</p>
+
+<div class="tokens-grid">
+  <!-- Token 1 -->
+  <div class="token-card">
+    <div class="color-swatch" style="background: #FF5722;"></div>
+    <h3>Oxide Rust (Color Primario)</h3>
+    <p><code>#FF5722</code> / Botones principales, marcas de capas activas, logo y branding.</p>
+  </div>
+  <!-- Token 2 -->
+  <div class="token-card">
+    <div class="color-swatch" style="background: #090D13;"></div>
+    <h3>Obsidian Canvas (Fondo Maestro)</h3>
+    <p><code>#090D13</code> / Fondo ultra-oscuro para contraste de color en previsualización de video.</p>
+  </div>
+  <!-- Token 3 -->
+  <div class="token-card">
+    <div class="color-swatch" style="background: #161B22;"></div>
+    <h3>Panel Surface (Docks y Menús)</h3>
+    <p><code>#161B22</code> / Superficies modulares, barras laterales y mezclador de audio.</p>
+  </div>
+  <!-- Token 4 -->
+  <div class="token-card">
+    <div class="color-swatch" style="background: #3FB950;"></div>
+    <h3>Broadcast Green (Telemetría OK)</h3>
+    <p><code>#3FB950</code> / Vúmetros de audio estables, salud de red óptima y badges LIVE.</p>
+  </div>
+</div>
+
+<h2>3. Elige tu Variante de Estilo Preferida</h2>
+<p class="subtitle">Haz clic en la opción que mejor represente la personalidad que buscas para OxideCast:</p>
+
+<div class="options">
+  <div class="option" data-choice="dark-studio-pro" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Dark Studio Pro (Recomendada)</h3>
+      <p>Fondo negro obsidiana profundo (<code>#090D13</code>) con detalles en naranja óxido Rust (<code>#FF5722</code>) y acentos en verde de telemetría. Máxima inmersión para cuartos oscuros de streaming y contraste profesional.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="cyber-minimal" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Cyber Minimalist Slate</h3>
+      <p>Fondo gris pizarra oscuro tipo Tailwind Zinc (<code>#18181B</code>) con acentos en violeta neón y cian eléctrico. Estética similar a Linear y editores de código modernos de alta gama.</p>
+    </div>
+  </div>
+</div>

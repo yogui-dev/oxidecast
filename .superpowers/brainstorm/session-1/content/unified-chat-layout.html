@@ -1,0 +1,303 @@
+<style>
+  .chat-hero {
+    background: linear-gradient(135deg, #131722 0%, #1e2538 100%);
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    color: #fff;
+  }
+  .tag-pill {
+    background: #FF5722;
+    color: white;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  /* Split layout preview: Main App with Integrated Chat Sidebar */
+  .app-with-chat {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    background: #090D13;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  .workspace-left {
+    padding: 16px;
+    background: #0d1117;
+    border-right: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .chat-sidebar {
+    background: #161b22;
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+  }
+
+  /* Chat Header */
+  .chat-header {
+    background: #21262d;
+    padding: 12px 14px;
+    border-bottom: 1px solid #30363d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .chat-counters {
+    display: flex;
+    gap: 8px;
+    font-size: 11px;
+    margin-top: 6px;
+  }
+  .counter-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .b-twitch { background: rgba(145, 70, 255, 0.2); color: #a970ff; border: 1px solid #9146ff; }
+  .b-youtube { background: rgba(255, 0, 0, 0.2); color: #ff4d4d; border: 1px solid #ff0000; }
+  .b-tiktok { background: rgba(254, 44, 85, 0.2); color: #fe2c55; border: 1px solid #fe2c55; }
+  .b-kick { background: rgba(83, 252, 24, 0.2); color: #53fc18; border: 1px solid #53fc18; }
+
+  /* Message List */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .msg-item {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .msg-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+  }
+  .msg-author {
+    font-weight: 700;
+  }
+  .msg-body {
+    color: #e6edf3;
+    line-height: 1.4;
+  }
+
+  /* Chat Input / Controls */
+  .chat-footer {
+    background: #21262d;
+    padding: 10px 12px;
+    border-top: 1px solid #30363d;
+    display: flex;
+    gap: 8px;
+  }
+  .chat-input {
+    flex: 1;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 6px 10px;
+    color: #c9d1d9;
+    font-size: 12px;
+  }
+
+  /* 3 Modes Cards */
+  .chat-modes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .mode-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+  .mode-card h3 {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>
+
+<div class="chat-hero">
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+    <span class="tag-pill">Nueva Propuesta</span>
+    <h1 style="font-size: 1.6rem; margin: 0; font-weight: 800;">Módulo de Chat Unificado Omnicanal (Unified Chat Engine)</h1>
+  </div>
+  <p style="margin: 0; color: #8b949e; font-size: 0.95rem;">
+    El dolor #1 de transmitir a múltiples plataformas es no poder leer el chat sin abrir 5 navegadores. En <strong>OxideCast</strong> unificamos los mensajes de Twitch, YouTube, Kick, TikTok e Instagram en un solo flujo en tiempo real.
+  </p>
+</div>
+
+<h2>1. Maqueta en Vivo: Panel Lateral Integrado con Soporte Desacoplable</h2>
+<p class="subtitle">Así se integra el chat en la ventana principal de OxideCast, con visor de métricas y badges por plataforma:</p>
+
+<div class="app-with-chat">
+  <!-- Left Side: Mini Dual Canvas preview -->
+  <div class="workspace-left">
+    <div style="display: flex; justify-content: space-between; align-items: center; color: #8b949e; font-size: 12px;">
+      <span>Lienzos de Transmisión Activos (Dual-Canvas 16:9 + 9:16)</span>
+      <span style="color: #3fb950; font-weight: bold;">● 4 PLATAFORMAS EN VIVO</span>
+    </div>
+    
+    <div style="display: flex; gap: 12px; height: 320px;">
+      <!-- 16:9 mini -->
+      <div style="flex: 1.6; background: #161b22; border: 1px solid #30363d; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #8b949e; position: relative;">
+        🖥️ 16:9 Landscape (YouTube & Twitch)
+        <span style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; font-size: 10px;">📷 Cam</span>
+      </div>
+      <!-- 9:16 mini -->
+      <div style="flex: 1; background: #161b22; border: 1px solid #30363d; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #8b949e; position: relative;">
+        📱 9:16 (TikTok Live)
+        <span style="position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; font-size: 9px; text-align: center;">💬 Chat Overlay</span>
+      </div>
+    </div>
+
+    <!-- Quick Audio Mini Bar -->
+    <div style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 10px; font-size: 11px; display: flex; justify-content: space-between;">
+      <span>🎙️ Mic: -3.8 dB (OK)</span>
+      <span>🔊 Juego: -12.4 dB</span>
+      <span>Bitrate: 14.2 Mbps (Zero Drops)</span>
+    </div>
+  </div>
+
+  <!-- Right Side: Unified Chat Sidebar -->
+  <div class="chat-sidebar">
+    <div class="chat-header">
+      <div>
+        <div style="font-weight: 700; font-size: 13px; color: #fff;">💬 Chat Unificado</div>
+        <div class="chat-counters">
+          <span class="counter-badge b-twitch">Twitch: 84</span>
+          <span class="counter-badge b-tiktok">TikTok: 310</span>
+          <span class="counter-badge b-youtube">YT: 45</span>
+          <span class="counter-badge b-kick">Kick: 19</span>
+        </div>
+      </div>
+      <button title="Desacoplar a ventana independiente para 2do monitor" style="background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer;">
+        ↗️ Desacoplar
+      </button>
+    </div>
+
+    <div class="chat-messages">
+      <!-- Msg 1 (Twitch) -->
+      <div class="msg-item">
+        <div class="msg-meta">
+          <span class="counter-badge b-twitch" style="font-size: 9px; padding: 1px 4px;">TWITCH</span>
+          <span class="msg-author" style="color: #a970ff;">SebaGamer_99:</span>
+          <span style="color: #6e7681; font-size: 10px;">17:41</span>
+        </div>
+        <div class="msg-body">¡Buena partida Jorge! Qué fluido se ve el stream hoy 🔥</div>
+      </div>
+
+      <!-- Msg 2 (TikTok) -->
+      <div class="msg-item">
+        <div class="msg-meta">
+          <span class="counter-badge b-tiktok" style="font-size: 9px; padding: 1px 4px;">TIKTOK</span>
+          <span class="msg-author" style="color: #fe2c55;">matias.cl:</span>
+          <span style="color: #6e7681; font-size: 10px;">17:41</span>
+        </div>
+        <div class="msg-body">De dónde eres hermano? Te sigo desde Concepción! 🎾</div>
+      </div>
+
+      <!-- Msg 3 (YouTube) -->
+      <div class="msg-item">
+        <div class="msg-meta">
+          <span class="counter-badge b-youtube" style="font-size: 9px; padding: 1px 4px;">YOUTUBE</span>
+          <span class="msg-author" style="color: #ff6b6b;">DiegoDev:</span>
+          <span style="color: #6e7681; font-size: 10px;">17:42</span>
+        </div>
+        <div class="msg-body">¿El backend está en Rust? Qué locura la baja latencia de respuesta</div>
+      </div>
+
+      <!-- Msg 4 (Kick) -->
+      <div class="msg-item">
+        <div class="msg-meta">
+          <span class="counter-badge b-kick" style="font-size: 9px; padding: 1px 4px;">KICK</span>
+          <span class="msg-author" style="color: #53fc18;">Alonso_RL:</span>
+          <span style="color: #6e7681; font-size: 10px;">17:42</span>
+        </div>
+        <div class="msg-body">Vamooos con ese rango oro en LoL!</div>
+      </div>
+    </div>
+
+    <div class="chat-footer">
+      <input type="text" class="chat-input" placeholder="Enviar mensaje a todas las plataformas..." />
+      <button style="background: #FF5722; color: white; border: none; border-radius: 4px; padding: 0 12px; font-weight: bold; font-size: 12px; cursor: pointer;">
+        Enviar
+      </button>
+    </div>
+  </div>
+</div>
+
+<h2>2. Las 3 Formas de Ver el Chat (Mi Recomendación Técnica)</h2>
+<p class="subtitle">Te recomiendo implementar un sistema híbrido que soporte los 3 escenarios según la cantidad de monitores que uses:</p>
+
+<div class="chat-modes">
+  <div class="mode-card">
+    <h3>1. Panel Lateral Integrado (Dock)</h3>
+    <p>El chat vive directamente en el costado derecho de OxideCast. No tapa los lienzos ni los controles y te permite leer todo desde la misma ventana central.</p>
+  </div>
+
+  <div class="mode-card">
+    <h3>2. Ventana Desacoplable (Pop-out 2do Monitor)</h3>
+    <p>Al hacer clic en <strong>↗️ Desacoplar</strong>, Tauri abre una ventana secundaria independiente y ultraligera que puedes arrastrar a un segundo monitor, televisor o tablet.</p>
+  </div>
+
+  <div class="mode-card">
+    <h3>3. Modo Ghost Overlay (1 Solo Monitor)</h3>
+    <p>Si estás jugando en pantalla completa en un solo monitor, una ventana semitransparente flota sobre el juego con <em>Click-through</em> (los clics del ratón atraviesan el chat para no estorbar en el juego).</p>
+  </div>
+</div>
+
+<h2>3. ¿Cómo prefieres que implementemos el Chat?</h2>
+<p class="subtitle">Selecciona tu alternativa preferida para incluirla en la arquitectura definitiva:</p>
+
+<div class="options">
+  <div class="option" data-choice="integrated-and-popout" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Panel Integrado + Ventana Desacoplable (Recomendada)</h3>
+      <p>Chat unificado en la barra derecha de OxideCast, con un botón para convertirlo en ventana flotante independiente cuando uses dos pantallas.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="always-popout" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Ventana Secundaria Dedicada</h3>
+      <p>El chat no ocupa espacio en la ventana principal; se abre como una ventana auxiliar separada lista para ubicar en tu segundo monitor.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="ghost-in-game" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Ghost Overlay sobre el Juego</h3>
+      <p>Prioridad para setup de un solo monitor: chat flotante transparente encima del juego con soporte para que no capture los clics del mouse.</p>
+    </div>
+  </div>
+</div>

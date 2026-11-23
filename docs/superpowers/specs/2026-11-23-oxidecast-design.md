@@ -30,11 +30,12 @@ graph TD
         MIX["Mezclador de Audio & Vúmetros"]
         SCENE["Gestor de Capas y Escenas"]
         STATUS["Monitor de Estado (FPS, CPU, GPU, Salud de Red)"]
+        CHAT_UI["Panel de Chat Unificado Omnicanal (Pop-out)"]
     end
 
     subgraph IPC ["Puente IPC Tipado (Tauri v2)"]
         CMD["Commands (Invocación Rust directa)"]
-        EVT["Events (Telemetría y Audio a 30 Hz)"]
+        EVT["Events (Telemetría, Audio y Mensajes de Chat a 30 Hz)"]
     end
 
     subgraph Core ["Motor Nativo OxideCast (Rust)"]
@@ -43,6 +44,7 @@ graph TD
         AUD["Motor de Audio (cpal WASAPI + DSP)"]
         ENC["Codificador por Hardware (NVIDIA NVENC)"]
         NET["Distribuidor Multistream (tokio RTMP)"]
+        CHAT_CORE["Motor de Chat Normalizado (Twitch, YT, Kick, TikTok)"]
     end
 
     UI --> CMD
@@ -54,6 +56,7 @@ graph TD
     AUD -->|Buffers f32| ENC
     GFX -->|Render Targets Duales| ENC
     ENC -->|Paquetes H.264 NAL| NET
+    CHAT_CORE -->|ChatMessage Structs| EVT
 ```
 
 ### Componentes del Core en Rust (`src-tauri/src/`)
@@ -62,11 +65,13 @@ graph TD
 3. **`engine::audio`:** Captura de baja latencia con `cpal` (WASAPI Loopback para sonido de juegos/sistema + entrada de micrófono). Cadena DSP: Puerta de Ruido y Limitador de Picos a `-1.0 dBFS`.
 4. **`engine::encoder`:** Interfaz directa hacia el chip de silicio NVIDIA NVENC (GPU RTX 4050). Ejecuta exactamente dos sesiones de codificación por hardware en paralelo (una horizontal y una vertical).
 5. **`engine::network`:** Motor asíncrono en `tokio` que duplica los paquetes de video comprimidos en memoria y los despacha mediante sockets TCP/RTMP hacia los destinos configurados.
+6. **`engine::chat`:** Normalizador y agregador en tiempo real de mensajes de chat multiplataforma (Twitch WebSocket, YouTube Live Streaming API, Kick Pusher, TikTok Live connector) despachados vía Tauri Events.
 
 ### Componentes de la Interfaz (`src/`)
 1. **`components/DualCanvas`:** Muestra en tiempo real ambos lienzos (16:9 a la izquierda, 9:16 a la derecha) con soporte para arrastrar, redimensionar y alinear capas.
 2. **`components/AudioMixer`:** Control individual de volumen por fuente, medidores de nivel (dBFS) y botón de mute.
 3. **`components/StreamControls`:** Botones de inicio/parada de transmisión y grabación, con indicadores de salud de conexión por plataforma.
+4. **`components/UnifiedChat`:** Feed unificado de comentarios en vivo con badges distintivos por plataforma, contadores de audiencia simultánea y botón de desacople a ventana secundaria.
 
 ---
 
@@ -111,7 +116,36 @@ No existe transferencia de píxeles hacia la memoria RAM del sistema. El procesa
 
 ---
 
-## 5. Distribución y Empaquetado para Windows
+## 5. Módulo de Chat Unificado Omnicanal (Unified Chat Subsystem)
+
+El subsistema de chat resuelve la fragmentación de la audiencia cuando se emite a múltiples plataformas en simultáneo:
+
+### Arquitectura de Ingesta y Normalización
+1. **Conectores Livianos en Rust (`engine::chat`):**
+   - **Twitch:** Conexión WebSocket directa a IRC (`wss://irc-ws.chat.twitch.tv:443`).
+   - **YouTube:** Polling adaptativo asíncrono sobre `liveChatMessages/list` vía `tokio`.
+   - **Kick:** Conexión WebSocket al clúster de Pusher de Kick.
+   - **TikTok:** Conector local para decodificación de eventos de directo.
+2. **Estructura Común Normalizada:**
+   ```rust
+   pub struct ChatMessage {
+       pub id: String,
+       pub platform: Platform, // Twitch, YouTube, Kick, TikTok, Instagram
+       pub author: String,
+       pub author_color: Option<String>,
+       pub content: String,
+       pub badges: Vec<String>,
+       pub timestamp: u64,
+   }
+   ```
+3. **Experiencia de Usuario Híbrida:**
+   - **Modo Panel Integrado:** Sidebar derecho dentro de OxideCast con scroll suave y contadores de espectadores en vivo.
+   - **Modo Ventana Desacoplable (Pop-out):** Invocación de `tauri::WebviewWindowBuilder` para abrir el chat en una ventana secundaria nativa independiente para un segundo monitor.
+   - **Modo Ghost Overlay In-Game:** Ventana flotante semi-transparente sobre el juego con `set_always_on_top(true)` y `set_ignore_cursor_events(true)` para que los clics del mouse traspasen la ventana hacia el juego.
+
+---
+
+## 6. Distribución y Empaquetado para Windows
 
 La distribución de OxideCast se compila con `tauri-cli v2` y produce:
 1. **Instalador Oficial (`.exe` NSIS):** Instalador estándar con creación de accesos directos y desinstalador limpio.
@@ -121,7 +155,7 @@ La distribución de OxideCast se compila con `tauri-cli v2` y produce:
 
 ---
 
-## 6. Matriz de Resiliencia y Manejo de Errores
+## 7. Matriz de Resiliencia y Manejo de Errores
 
 | Incidente / Fallo | Detección Técnica | Acción Automática de Recuperación |
 | :--- | :--- | :--- |
@@ -132,7 +166,7 @@ La distribución de OxideCast se compila con `tauri-cli v2` y produce:
 
 ---
 
-## 7. Estrategia de Pruebas y Control de Calidad
+## 8. Estrategia de Pruebas y Control de Calidad
 
 1. **Pruebas Unitarias de Rust (`cargo test`):**
    - Cobertura matemática del limitador de picos y puerta de ruido.
