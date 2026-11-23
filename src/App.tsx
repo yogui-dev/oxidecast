@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Radio, Monitor, Sliders, Play, Square, Layers, Activity } from 'lucide-react';
+import { DualCanvas } from './components/DualCanvas';
 
 export const App: React.FC = () => {
   const [isLive, setIsLive] = useState(false);
@@ -61,19 +62,8 @@ export const App: React.FC = () => {
       {/* Main Studio Viewport */}
       <main className="flex-1 p-4 grid grid-cols-12 gap-4 overflow-hidden">
         {/* Canvas & Stream Preview */}
-        <section className="col-span-8 flex flex-col gap-4">
-          <div className="flex-1 bg-black rounded-lg border border-gray-800 flex flex-col items-center justify-center relative overflow-hidden group shadow-inner min-h-[360px]">
-            <Monitor className="h-16 w-16 text-gray-700 mb-2 group-hover:text-gray-600 transition-colors" />
-            <p className="text-sm text-gray-500 font-mono">Canvas Principal (1920x1080 @ 60fps)</p>
-            <div className="absolute top-3 left-3 flex gap-2">
-              <span className="px-2 py-0.5 rounded bg-gray-900/80 text-[11px] font-mono text-gray-300 border border-gray-700 backdrop-blur-sm">
-                Twitch: RTMP://live.twitch.tv
-              </span>
-              <span className="px-2 py-0.5 rounded bg-gray-900/80 text-[11px] font-mono text-gray-300 border border-gray-700 backdrop-blur-sm">
-                YouTube: RTMP://a.rtmp.youtube.com
-              </span>
-            </div>
-          </div>
+        <section className="col-span-8 flex flex-col gap-4 overflow-y-auto">
+          <DualCanvas />
 
           {/* Scenes & Sources Dock */}
           <div className="h-44 grid grid-cols-2 gap-4">
