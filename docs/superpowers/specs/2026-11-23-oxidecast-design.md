@@ -66,12 +66,14 @@ graph TD
 4. **`engine::encoder`:** Interfaz directa hacia el chip de silicio NVIDIA NVENC (GPU RTX 4050). Ejecuta exactamente dos sesiones de codificación por hardware en paralelo (una horizontal y una vertical).
 5. **`engine::network`:** Motor asíncrono en `tokio` que duplica los paquetes de video comprimidos en memoria y los despacha mediante sockets TCP/RTMP hacia los destinos configurados.
 6. **`engine::chat`:** Normalizador y agregador en tiempo real de mensajes de chat multiplataforma (Twitch WebSocket, YouTube Live Streaming API, Kick Pusher, TikTok Live connector) despachados vía Tauri Events.
+7. **`engine::importer`:** Motor de migración sin fricción que analiza y convierte archivos `.json` de colecciones de escenas y archivos `.ini` de perfiles de OBS Studio a esquemas nativos de OxideCast.
 
 ### Componentes de la Interfaz (`src/`)
 1. **`components/DualCanvas`:** Muestra en tiempo real ambos lienzos (16:9 a la izquierda, 9:16 a la derecha) con soporte para arrastrar, redimensionar y alinear capas.
 2. **`components/AudioMixer`:** Control individual de volumen por fuente, medidores de nivel (dBFS) y botón de mute.
 3. **`components/StreamControls`:** Botones de inicio/parada de transmisión y grabación, con indicadores de salud de conexión por plataforma.
 4. **`components/UnifiedChat`:** Feed unificado de comentarios en vivo con badges distintivos por plataforma, contadores de audiencia simultánea y botón de desacople a ventana secundaria.
+5. **`components/ObsMigrationWizard`:** Asistente modal de un clic que autodetecta colecciones de escenas de OBS Studio instaladas y las migra al vuelo a Dual-Canvas.
 
 ---
 
@@ -145,7 +147,34 @@ El subsistema de chat resuelve la fragmentación de la audiencia cuando se emite
 
 ---
 
-## 6. Distribución y Empaquetado para Windows
+## 6. Módulo de Migración e Importación desde OBS Studio (OBS Importer Engine)
+
+Para eliminar toda fricción de adopción, OxideCast incluye un motor de migración inteligente capaz de leer y transformar la configuración existente de OBS Studio:
+
+### 1. Detección Automática de Archivos OBS
+- Escanea las rutas predeterminadas de Windows:
+  - `%APPDATA%\obs-studio\basic\scenes\*.json` (Colecciones de escenas).
+  - `%APPDATA%\obs-studio\basic\profiles\*\basic.ini` (Perfiles y credenciales RTMP).
+  - Admite selección manual de archivo `.json` exportado desde cualquier versión de OBS Studio (incluyendo versiones portables).
+
+### 2. Mapeo de Fuentes y Compatibilidad
+| Fuente / Elemento en OBS Studio | Mapeo Nativo en OxideCast | Estrategia de Migración |
+| :--- | :--- | :--- |
+| `game_capture` | `engine::capture` (Windows Graphics Capture) | Extrae el nombre del ejecutable o ventana y lo vincula a la API WGC acelerada por D3D11. |
+| `dshow_input` (Cámara web) | `engine::capture` (MediaFoundation / DirectShow) | Mapea el identificador de hardware del dispositivo de video. |
+| `browser_source` (Overlays) | `engine::render` (WebView2 Surface) | Copia la URL, CSS personalizado y dimensiones de renderizado. |
+| `image_source` / `color_source` | Texturas RGBA en `wgpu` | Carga el archivo local o genera el color sólido en memoria VRAM. |
+| `wasapi_input_capture` (Micrófono) | `engine::audio` (`cpal`) | Asigna el dispositivo de audio y replica los filtros de ruido (*Noise Gate* y *Limiter*). |
+
+### 3. Generación Automática del Lienzo Vertical (Smart Dual-Canvas Upgrade)
+- Al importar una escena tradicional de OBS de 16:9, OxideCast no solo la importa intacta, sino que **aplica el algoritmo de Smart Layout Anchor para sintetizar automáticamente su contraparte vertical 9:16**:
+  - La webcam detectada se posiciona en el tercio superior.
+  - El gameplay se centra automáticamente con escalado proporcional.
+  - El usuario puede empezar a emitir a TikTok/Instagram de inmediato sin tener que rearmar su escena desde cero.
+
+---
+
+## 7. Distribución y Empaquetado para Windows
 
 La distribución de OxideCast se compila con `tauri-cli v2` y produce:
 1. **Instalador Oficial (`.exe` NSIS):** Instalador estándar con creación de accesos directos y desinstalador limpio.
@@ -155,7 +184,7 @@ La distribución de OxideCast se compila con `tauri-cli v2` y produce:
 
 ---
 
-## 7. Matriz de Resiliencia y Manejo de Errores
+## 8. Matriz de Resiliencia y Manejo de Errores
 
 | Incidente / Fallo | Detección Técnica | Acción Automática de Recuperación |
 | :--- | :--- | :--- |
@@ -166,7 +195,7 @@ La distribución de OxideCast se compila con `tauri-cli v2` y produce:
 
 ---
 
-## 8. Estrategia de Pruebas y Control de Calidad
+## 9. Estrategia de Pruebas y Control de Calidad
 
 1. **Pruebas Unitarias de Rust (`cargo test`):**
    - Cobertura matemática del limitador de picos y puerta de ruido.
