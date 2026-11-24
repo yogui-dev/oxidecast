@@ -18,6 +18,7 @@ import { SourceList } from './components/SourceList';
 import { ConnectionsModal } from './components/ConnectionsModal';
 import { MenuBar } from './components/MenuBar';
 import { AboutModal } from './components/AboutModal';
+import { SourceFiltersModal } from './components/SourceFiltersModal';
 import { Splitter } from './components/Splitter';
 import {
   loadStudioConfig,
@@ -31,6 +32,7 @@ import {
   StudioConfig,
   Scene,
   SourceItem,
+  SourceFilterSettings,
   StreamingDestination,
   ChatChannelConfig,
   WorkspaceLayout,
@@ -46,6 +48,7 @@ export const App: React.FC = () => {
   const [isConnectionsOpen, setIsConnectionsOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+  const [filterModalSource, setFilterModalSource] = useState<SourceItem | null>(null);
 
   const obsFileInputRef = useRef<HTMLInputElement>(null);
   const mainContainerRef = useRef<HTMLElement>(null);
@@ -293,6 +296,13 @@ export const App: React.FC = () => {
     }));
   };
 
+  const handleUpdateSourceFilters = (sourceId: string, filters: SourceFilterSettings) => {
+    handleUpdateSource(sourceId, { filters });
+    setFilterModalSource((prev) =>
+      prev && prev.id === sourceId ? { ...prev, filters } : prev
+    );
+  };
+
   const handleUpdateDestinations = (destinations: StreamingDestination[]) => {
     setConfig((prev) => ({ ...prev, destinations }));
   };
@@ -489,6 +499,7 @@ export const App: React.FC = () => {
                 onMoveSource={handleMoveSource}
                 onAddSource={handleAddSource}
                 onUpdateSource={handleUpdateSource}
+                onOpenFilters={(source) => setFilterModalSource(source)}
               />
             </div>
           </>
@@ -505,6 +516,7 @@ export const App: React.FC = () => {
                 onMoveSource={handleMoveSource}
                 onAddSource={handleAddSource}
                 onUpdateSource={handleUpdateSource}
+                onOpenFilters={(source) => setFilterModalSource(source)}
               />
             </div>
             <Splitter
@@ -903,6 +915,14 @@ export const App: React.FC = () => {
       <AboutModal
         isOpen={isAboutOpen}
         onClose={() => setIsAboutOpen(false)}
+      />
+
+      {/* Modal Profesional de Filtros de Fuente tipo OBS */}
+      <SourceFiltersModal
+        isOpen={filterModalSource !== null}
+        onClose={() => setFilterModalSource(null)}
+        source={filterModalSource}
+        onUpdateFilters={handleUpdateSourceFilters}
       />
 
       {/* Footer Status Bar */}
