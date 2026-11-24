@@ -1,0 +1,82 @@
+name: Release y Empaquetado Windows
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Compilación y Release Windows (NSIS & Portable)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
+      - name: Configurar Toolchain de Rust (x86_64-pc-windows-msvc)
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-pc-windows-msvc
+
+      - name: Instalar Dependencias del Frontend con pnpm
+        run: pnpm install --frozen-lockfile
+
+      - name: Ejecutar Pruebas Frontend en Vitest
+        run: pnpm test
+
+      - name: Ejecutar Pruebas Nativas de Rust
+        run: cargo test --manifest-path src-tauri/Cargo.toml --verbose
+
+      - name: Compilar Frontend de Producción
+        run: pnpm build
+
+      - name: Construir y Publicar Bundle Tauri (NSIS y MSI)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'OxideCast v__VERSION__'
+          releaseBody: |
+            ## 🦀 OxideCast Studio v__VERSION__ 🇨🇱
+            *Suite Broadcast y Grabación de Nueva Generación en Rust y Tauri v2.*
+
+            ### Novedades
+            - Dual-Canvas simultáneo nativo (16:9 horizontal y 9:16 vertical).
+            - Aceleración por hardware NVIDIA NVENC con composición zero-copy en VRAM.
+            - Audio WASAPI con limitador estricto de picos a `-1.0 dBFS` y puerta de ruido.
+            - Chat unificado omnicanal con ventana emergente para monitores secundarios.
+            - Empaquetado oficial con instalador NSIS (`currentUser`) y paquete MSI.
+
+            ### Descarga para Windows
+            - **Instalador NSIS:** `OxideCast___VERSION___x64-setup.exe` (Recomendado, no requiere privilegios de administrador).
+            - **Paquete MSI:** `OxideCast___VERSION___x64_en-US.msi`.
+          releaseDraft: false
+          prerelease: false
+          args: --target x86_64-pc-windows-msvc
+
+      - name: Subir Artefactos de Compilación
+        uses: actions/upload-artifact@v4
+        with:
+          name: oxidecast-windows-bundle
+          path: |
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+          if-no-files-found: warn
