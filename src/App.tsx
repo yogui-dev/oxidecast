@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Radio,
   Sliders,
@@ -13,6 +13,8 @@ import { UnifiedChat } from './components/UnifiedChat';
 import { SceneList } from './components/SceneList';
 import { SourceList } from './components/SourceList';
 import { ConnectionsModal } from './components/ConnectionsModal';
+import { MenuBar } from './components/MenuBar';
+import { AboutModal } from './components/AboutModal';
 import {
   loadStudioConfig,
   saveStudioConfig,
@@ -25,13 +27,18 @@ import {
   StreamingDestination,
   ChatChannelConfig,
 } from './types/studio';
+import { importObsCollection } from './utils/obsImporter';
 
 export const App: React.FC = () => {
   const [config, setConfig] = useState<StudioConfig>(() => loadStudioConfig());
   const [isLive, setIsLive] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
+  const [isAudioExpanded, setIsAudioExpanded] = useState(true);
   const [isConnectionsOpen, setIsConnectionsOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+
+  const obsFileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-guardado en localStorage cada vez que la configuración cambie
   useEffect(() => {
@@ -48,7 +55,6 @@ export const App: React.FC = () => {
   const toggleBroadcast = () => {
     setIsLive((prev) => {
       const nextState = !prev;
-      // Actualizar estado de destinos habilitados
       const updatedDestinations = config.destinations.map((d) =>
         d.enabled
           ? {
@@ -71,10 +77,11 @@ export const App: React.FC = () => {
     setSelectedSourceId(null);
   };
 
-  const handleAddScene = (name: string) => {
+  const handleAddScene = (name?: string) => {
+    const sceneName = name && name.trim() ? name.trim() : `Escena ${config.scenes.length + 1}`;
     const newScene: Scene = {
       id: `scene-${Date.now()}`,
-      name,
+      name: sceneName,
       sources: [],
     };
     setConfig((prev) => ({
@@ -91,8 +98,9 @@ export const App: React.FC = () => {
     }));
   };
 
-  const handleDuplicateScene = (id: string) => {
-    const target = config.scenes.find((s) => s.id === id);
+  const handleDuplicateScene = (id?: string) => {
+    const targetId = id || currentScene.id;
+    const target = config.scenes.find((s) => s.id === targetId);
     if (!target) return;
 
     const duplicated: Scene = {
@@ -111,11 +119,12 @@ export const App: React.FC = () => {
     }));
   };
 
-  const handleDeleteScene = (id: string) => {
+  const handleDeleteScene = (id?: string) => {
     if (config.scenes.length <= 1) return;
-    const remaining = config.scenes.filter((s) => s.id !== id);
+    const targetId = id || currentScene.id;
+    const remaining = config.scenes.filter((s) => s.id !== targetId);
     const nextActive =
-      config.activeSceneId === id ? remaining[0].id : config.activeSceneId;
+      config.activeSceneId === targetId ? remaining[0].id : config.activeSceneId;
 
     setConfig((prev) => ({
       ...prev,
@@ -131,6 +140,35 @@ export const App: React.FC = () => {
       scenes: [...prev.scenes, ...importedScenes],
       activeSceneId: importedScenes[0].id,
     }));
+  };
+
+  const handleObsFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      const res = importObsCollection(content);
+      if (res.success && res.scenes.length > 0) {
+        handleImportScenes(res.scenes);
+        alert(`¡${res.scenes.length} escenas importadas exitosamente desde OBS Studio!`);
+      } else {
+        alert(res.error || 'No se pudo importar la colección de OBS.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleExportConfig = () => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(config, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `oxidecast_profile_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
   };
 
   // --- Handlers de Fuentes ---
@@ -249,15 +287,15 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-oxide-canvas text-gray-200 flex flex-col font-sans select-none">
       {/* Header Bar */}
-      <header className="h-14 border-b border-gray-800 bg-oxide-surface px-6 flex items-center justify-between">
+      <header className="h-12 border-b border-gray-800 bg-oxide-surface px-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-oxide-rust flex items-center justify-center text-white shadow-md">
-            <Radio className="h-5 w-5" />
+          <div className="h-7 w-7 rounded-lg bg-oxide-rust flex items-center justify-center text-white shadow-md">
+            <Radio className="h-4 w-4" />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
               OxideCast
-              <span className="text-xs px-2 py-0.5 rounded bg-gray-800 text-orange-400 font-mono font-medium border border-gray-700">
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-gray-800 text-orange-400 font-mono font-medium border border-gray-700">
                 v0.1.0-release
               </span>
             </h1>
@@ -265,20 +303,20 @@ export const App: React.FC = () => {
         </div>
 
         {/* Live & Connections Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {/* Botón Gestión de Conexiones */}
           <button
             type="button"
             onClick={() => setIsConnectionsOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-gray-900 hover:bg-gray-800 border border-gray-700 text-xs font-semibold text-gray-200 hover:text-white transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-gray-900 hover:bg-gray-800 border border-gray-700 text-xs font-semibold text-gray-200 hover:text-white transition-colors shadow-sm"
           >
             <Settings className="h-3.5 w-3.5 text-orange-400" />
             <span>Conexiones ({enabledDestinationsCount} Activas)</span>
           </button>
 
           {/* Indicador de Estado */}
-          <div className="flex items-center gap-2 px-3 py-1 bg-gray-900 border border-gray-800 rounded text-xs font-mono">
-            <Activity className={`h-3.5 w-3.5 ${isLive ? 'text-green-500 animate-pulse' : 'text-gray-500'}`} />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-900 border border-gray-800 rounded text-xs font-mono">
+            <Activity className={`h-3 w-3 ${isLive ? 'text-green-500 animate-pulse' : 'text-gray-500'}`} />
             <span className={isLive ? 'text-green-400 font-semibold' : 'text-gray-400'}>
               {isLive ? 'EN VIVO' : 'STANDBY'}
             </span>
@@ -287,7 +325,7 @@ export const App: React.FC = () => {
           {/* Botón de Transmisión */}
           <button
             onClick={toggleBroadcast}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-md font-medium text-sm transition-all duration-150 shadow-md ${
+            className={`flex items-center gap-1.5 px-3.5 py-1 rounded-md font-medium text-xs transition-all duration-150 shadow-md ${
               isLive
                 ? 'bg-red-600 hover:bg-red-700 text-white'
                 : 'bg-oxide-rust hover:bg-orange-600 text-white active:scale-95'
@@ -295,12 +333,12 @@ export const App: React.FC = () => {
           >
             {isLive ? (
               <>
-                <Square className="h-4 w-4 fill-current" />
+                <Square className="h-3.5 w-3.5 fill-current" />
                 Detener Emisión
               </>
             ) : (
               <>
-                <Play className="h-4 w-4 fill-current" />
+                <Play className="h-3.5 w-3.5 fill-current" />
                 Iniciar Emisión Dual
               </>
             )}
@@ -308,10 +346,37 @@ export const App: React.FC = () => {
         </div>
       </header>
 
+      {/* Barra de Menús Superior de Escritorio (Desktop MenuBar) */}
+      <MenuBar
+        onNewScene={() => handleAddScene()}
+        onImportObs={() => obsFileInputRef.current?.click()}
+        onExportConfig={handleExportConfig}
+        onDuplicateScene={() => handleDuplicateScene()}
+        onDeleteScene={() => handleDeleteScene()}
+        onOpenConnections={() => setIsConnectionsOpen(true)}
+        onOpenChatChannels={() => setIsChatExpanded(true)}
+        isChatExpanded={isChatExpanded}
+        onToggleChat={() => setIsChatExpanded(!isChatExpanded)}
+        isAudioExpanded={isAudioExpanded}
+        onToggleAudio={() => setIsAudioExpanded(!isAudioExpanded)}
+        isBroadcasting={isLive}
+        onToggleBroadcast={toggleBroadcast}
+        onShowAbout={() => setIsAboutOpen(true)}
+      />
+
+      {/* Input Oculto para Selección de Archivo OBS */}
+      <input
+        type="file"
+        ref={obsFileInputRef}
+        onChange={handleObsFileInputChange}
+        accept=".json"
+        className="hidden"
+      />
+
       {/* Main Studio Viewport */}
-      <main className="flex-1 p-4 grid grid-cols-12 gap-4 overflow-hidden">
+      <main className="flex-1 p-3 grid grid-cols-12 gap-3 overflow-hidden">
         {/* Canvas & Stream Preview */}
-        <section className="col-span-8 flex flex-col gap-4 overflow-y-auto">
+        <section className="col-span-8 flex flex-col gap-3 overflow-y-auto">
           <DualCanvas
             activeScene={currentScene}
             selectedSourceId={selectedSourceId}
@@ -319,7 +384,7 @@ export const App: React.FC = () => {
           />
 
           {/* Dock Dinámico de Escenas y Fuentes */}
-          <div className="h-48 grid grid-cols-2 gap-4">
+          <div className="h-44 grid grid-cols-2 gap-3">
             <SceneList
               scenes={config.scenes}
               activeSceneId={config.activeSceneId}
@@ -346,100 +411,111 @@ export const App: React.FC = () => {
         </section>
 
         {/* Right Sidebar - Audio, Telemetry & Unified Chat */}
-        <aside className="col-span-4 flex flex-col gap-3 overflow-y-auto">
+        <aside className="col-span-4 flex flex-col gap-2.5 overflow-y-auto">
           {/* Chat Unificado con Canales Conectables */}
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between mb-1.5 px-0.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
-                <MessageSquare className="h-3.5 w-3.5 text-oxide-rust" />
-                Interacción Omnicanal
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsChatExpanded(!isChatExpanded)}
-                className="text-[11px] font-medium px-2 py-0.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 transition-colors shadow-sm"
-              >
-                {isChatExpanded ? 'Colapsar Chat' : 'Expandir Chat'}
-              </button>
-            </div>
+          {isChatExpanded && (
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between mb-1 px-0.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                  <MessageSquare className="h-3 w-3 text-oxide-rust" />
+                  Interacción Omnicanal
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsChatExpanded(false)}
+                  className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 transition-colors"
+                >
+                  Ocultar
+                </button>
+              </div>
 
-            {isChatExpanded && (
-              <div className="h-72 mb-1 flex flex-col">
+              <div className="h-64 mb-1 flex flex-col">
                 <UnifiedChat
                   channels={config.chatChannels}
                   onUpdateChannels={handleUpdateChannels}
                 />
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Mezclador de Audio WASAPI */}
-          <div className="flex-1 bg-oxide-surface border border-gray-800 rounded-lg p-3 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                <Sliders className="h-3.5 w-3.5 text-oxide-rust" />
-                Mezclador de Audio (DSP / WASAPI)
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-xs text-gray-300 mb-1">
-                    <span>Audio del Escritorio</span>
-                    <span className="text-gray-500 font-mono">-6.0 dBFS</span>
+          {isAudioExpanded && (
+            <div className="flex-1 bg-oxide-surface border border-gray-800 rounded-lg p-2.5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    <Sliders className="h-3 w-3 text-oxide-rust" />
+                    Mezclador de Audio (DSP / WASAPI)
                   </div>
-                  <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        isLive ? 'bg-green-500 w-[72%]' : 'bg-gray-700 w-[20%]'
-                      }`}
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAudioExpanded(false)}
+                    className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 transition-colors"
+                  >
+                    Ocultar
+                  </button>
                 </div>
 
-                <div>
-                  <div className="flex justify-between text-xs text-gray-300 mb-1">
-                    <span>Micrófono (Puerta -45 dB | Limitador -1 dB)</span>
-                    <span className="text-gray-500 font-mono">-12.0 dBFS</span>
+                <div className="space-y-2.5">
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-300 mb-1">
+                      <span>Audio del Escritorio</span>
+                      <span className="text-gray-500 font-mono">-6.0 dBFS</span>
+                    </div>
+                    <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          isLive ? 'bg-green-500 w-[72%]' : 'bg-gray-700 w-[20%]'
+                        }`}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        isLive ? 'bg-green-500 w-[58%]' : 'bg-gray-700 w-[15%]'
-                      }`}
-                    />
+
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-300 mb-1">
+                      <span>Micrófono (Puerta -45 dB | Limitador -1 dB)</span>
+                      <span className="text-gray-500 font-mono">-12.0 dBFS</span>
+                    </div>
+                    <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          isLive ? 'bg-green-500 w-[58%]' : 'bg-gray-700 w-[15%]'
+                        }`}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="pt-2 border-t border-gray-800/80 flex justify-between items-center text-[10px] text-gray-500 font-mono">
-              <span>Peak Limiter: -1.0 dBFS Activo</span>
-              <span>Noise Gate: -45.0 dBFS</span>
+              <div className="pt-1.5 border-t border-gray-800/80 flex justify-between items-center text-[10px] text-gray-500 font-mono">
+                <span>Peak Limiter: -1.0 dBFS Activo</span>
+                <span>Noise Gate: -45.0 dBFS</span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Telemetría de Red y Hardware */}
-          <div className="h-40 bg-oxide-surface border border-gray-800 rounded-lg p-3 flex flex-col justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
-              <Activity className="h-3.5 w-3.5 text-oxide-rust" />
+          <div className="h-36 bg-oxide-surface border border-gray-800 rounded-lg p-2.5 flex flex-col justify-between">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+              <Activity className="h-3 w-3 text-oxide-rust" />
               Telemetría de Red y Hardware (RTX 4050)
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-              <div className="p-2 bg-gray-900/60 rounded border border-gray-800">
-                <span className="text-gray-500 block text-[10px]">CPU</span>
+            <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
+              <div className="p-1.5 bg-gray-900/60 rounded border border-gray-800">
+                <span className="text-gray-500 block text-[9px]">CPU</span>
                 <span className="text-gray-200 font-semibold">{isLive ? '2.4%' : '0.9%'}</span>
               </div>
-              <div className="p-2 bg-gray-900/60 rounded border border-gray-800">
-                <span className="text-gray-500 block text-[10px]">RAM</span>
+              <div className="p-1.5 bg-gray-900/60 rounded border border-gray-800">
+                <span className="text-gray-500 block text-[9px]">RAM</span>
                 <span className="text-gray-200 font-semibold">{isLive ? '42 MB' : '38 MB'}</span>
               </div>
-              <div className="p-2 bg-gray-900/60 rounded border border-gray-800">
-                <span className="text-gray-500 block text-[10px]">FPS DUAL</span>
+              <div className="p-1.5 bg-gray-900/60 rounded border border-gray-800">
+                <span className="text-gray-500 block text-[9px]">FPS DUAL</span>
                 <span className="text-gray-200 font-semibold">{isLive ? '60.0' : '0.0'}</span>
               </div>
-              <div className="p-2 bg-gray-900/60 rounded border border-gray-800">
-                <span className="text-gray-500 block text-[10px]">BITRATE TOTAL</span>
+              <div className="p-1.5 bg-gray-900/60 rounded border border-gray-800">
+                <span className="text-gray-500 block text-[9px]">BITRATE TOTAL</span>
                 <span className="text-gray-200 font-semibold">
                   {isLive ? '11,000 kbps' : '0 kbps'}
                 </span>
@@ -459,8 +535,14 @@ export const App: React.FC = () => {
         onToggleBroadcast={toggleBroadcast}
       />
 
+      {/* Modal Acerca de OxideCast */}
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+      />
+
       {/* Footer Status Bar */}
-      <footer className="h-8 border-t border-gray-800 bg-oxide-surface px-4 flex items-center justify-between text-[11px] font-mono text-gray-400">
+      <footer className="h-7 border-t border-gray-800 bg-oxide-surface px-4 flex items-center justify-between text-[10px] font-mono text-gray-400">
         <div className="flex items-center gap-4">
           <span>Motor: <span className="text-gray-200 font-semibold">Rust / Tokio</span></span>
           <span>Audio: <span className="text-gray-200 font-semibold">WASAPI DSP Puro</span></span>
