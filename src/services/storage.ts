@@ -1,6 +1,50 @@
-import { StudioConfig, Scene, StreamingDestination, ChatChannelConfig } from '../types/studio';
+import {
+  StudioConfig,
+  Scene,
+  StreamingDestination,
+  ChatChannelConfig,
+  WorkspaceLayout,
+} from '../types/studio';
 
 const STORAGE_KEY = 'oxidecast_studio_profile_v1';
+const LAYOUT_STORAGE_KEY = 'oxidecast_workspace_layout_v1';
+
+export const DEFAULT_WORKSPACE_LAYOUT: WorkspaceLayout = {
+  sidebarWidthPercent: 32,
+  bottomDockHeightPx: 210,
+  scenesWidthPercent: 45,
+  chatHeightPx: 260,
+  isChatExpanded: true,
+  isAudioExpanded: true,
+  sidebarPosition: 'right',
+  dockOrder: ['scenes', 'sources'],
+};
+
+export function loadWorkspaceLayout(): WorkspaceLayout {
+  try {
+    const raw = localStorage.getItem(LAYOUT_STORAGE_KEY);
+    if (!raw) return DEFAULT_WORKSPACE_LAYOUT;
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_WORKSPACE_LAYOUT, ...parsed };
+  } catch {
+    return DEFAULT_WORKSPACE_LAYOUT;
+  }
+}
+
+export function saveWorkspaceLayout(layout: WorkspaceLayout): void {
+  try {
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(layout));
+  } catch (e) {
+    console.error('Error al guardar layout del workspace:', e);
+  }
+}
+
+export function resetWorkspaceLayout(): WorkspaceLayout {
+  try {
+    localStorage.removeItem(LAYOUT_STORAGE_KEY);
+  } catch {}
+  return DEFAULT_WORKSPACE_LAYOUT;
+}
 
 export const INITIAL_DEFAULT_SCENES: Scene[] = [
   {

@@ -80,3 +80,15 @@ export interface StudioConfig {
     noiseGateThresholdDb: number;
   };
 }
+
+export interface WorkspaceLayout {
+  sidebarWidthPercent: number;
+  bottomDockHeightPx: number;
+  scenesWidthPercent: number;
+  chatHeightPx: number;
+  isChatExpanded: boolean;
+  isAudioExpanded: boolean;
+  sidebarPosition: 'left' | 'right';
+  dockOrder: ('scenes' | 'sources')[];
+}
+

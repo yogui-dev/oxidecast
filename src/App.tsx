@@ -9,6 +9,7 @@ import {
   Settings,
   Disc,
   RotateCcw,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { DualCanvas } from './components/DualCanvas';
 import { UnifiedChat } from './components/UnifiedChat';
@@ -17,10 +18,14 @@ import { SourceList } from './components/SourceList';
 import { ConnectionsModal } from './components/ConnectionsModal';
 import { MenuBar } from './components/MenuBar';
 import { AboutModal } from './components/AboutModal';
+import { Splitter } from './components/Splitter';
 import {
   loadStudioConfig,
   saveStudioConfig,
   INITIAL_DEFAULT_SCENES,
+  loadWorkspaceLayout,
+  saveWorkspaceLayout,
+  resetWorkspaceLayout,
 } from './services/storage';
 import {
   StudioConfig,
@@ -28,26 +33,32 @@ import {
   SourceItem,
   StreamingDestination,
   ChatChannelConfig,
+  WorkspaceLayout,
 } from './types/studio';
 import { importObsCollection } from './utils/obsImporter';
 
 export const App: React.FC = () => {
   const [config, setConfig] = useState<StudioConfig>(() => loadStudioConfig());
+  const [layout, setLayout] = useState<WorkspaceLayout>(() => loadWorkspaceLayout());
   const [isLive, setIsLive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isBufferActive, setIsBufferActive] = useState(false);
-  const [isChatExpanded, setIsChatExpanded] = useState(true);
-  const [isAudioExpanded, setIsAudioExpanded] = useState(true);
   const [isConnectionsOpen, setIsConnectionsOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
 
   const obsFileInputRef = useRef<HTMLInputElement>(null);
+  const mainContainerRef = useRef<HTMLElement>(null);
 
   // Auto-guardado en localStorage cada vez que la configuración cambie
   useEffect(() => {
     saveStudioConfig(config);
   }, [config]);
+
+  // Auto-guardado de la disposición personalizada del workspace
+  useEffect(() => {
+    saveWorkspaceLayout(layout);
+  }, [layout]);
 
   // Escena activa actual
   const currentScene: Scene =
@@ -290,7 +301,409 @@ export const App: React.FC = () => {
     setConfig((prev) => ({ ...prev, chatChannels }));
   };
 
+  // --- Handlers de Redimensionamiento y Reordenamiento de Layout ---
+  const handleStartResizeSidebar = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const container = mainContainerRef.current;
+    if (!container) return;
+
+    const startX = e.clientX;
+    const initialPercent = layout.sidebarWidthPercent;
+    const containerWidth = container.getBoundingClientRect().width;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaPercent = (deltaX / containerWidth) * 100;
+      const factor = layout.sidebarPosition === 'right' ? -1 : 1;
+      const newPercent = Math.min(Math.max(initialPercent + deltaPercent * factor, 18), 50);
+
+      setLayout((prev) => ({ ...prev, sidebarWidthPercent: Math.round(newPercent) }));
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  const handleStartResizeBottomDock = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const initialHeight = layout.bottomDockHeightPx;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const newHeight = Math.min(Math.max(initialHeight - deltaY, 130), 450);
+
+      setLayout((prev) => ({ ...prev, bottomDockHeightPx: Math.round(newHeight) }));
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  const handleStartResizeDocks = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const initialPercent = layout.scenesWidthPercent;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaPercent = (deltaX / 700) * 100;
+      const newPercent = Math.min(Math.max(initialPercent + deltaPercent, 20), 80);
+
+      setLayout((prev) => ({ ...prev, scenesWidthPercent: Math.round(newPercent) }));
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  const handleStartResizeChat = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const initialHeight = layout.chatHeightPx;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const newHeight = Math.min(Math.max(initialHeight + deltaY, 150), 480);
+
+      setLayout((prev) => ({ ...prev, chatHeightPx: Math.round(newHeight) }));
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  const handleToggleSidebarPosition = () => {
+    setLayout((prev) => ({
+      ...prev,
+      sidebarPosition: prev.sidebarPosition === 'right' ? 'left' : 'right',
+    }));
+  };
+
+  const handleSwapDocksOrder = () => {
+    setLayout((prev) => ({
+      ...prev,
+      dockOrder: prev.dockOrder[0] === 'scenes' ? ['sources', 'scenes'] : ['scenes', 'sources'],
+    }));
+  };
+
+  const handleResetLayout = () => {
+    const defaultLayout = resetWorkspaceLayout();
+    setLayout(defaultLayout);
+  };
+
   const enabledDestinationsCount = config.destinations.filter((d) => d.enabled).length;
+
+  // Renderizador de la sección principal (DualCanvas + Bahía Inferior)
+  const renderMainSection = () => (
+    <section
+      style={{
+        width: `calc(${100 - layout.sidebarWidthPercent}% - 6px)`,
+      }}
+      className="flex flex-col min-w-0 overflow-hidden"
+    >
+      {/* Canvas & Stream Preview */}
+      <div className="flex-1 min-h-0 overflow-y-auto pb-1.5">
+        <DualCanvas
+          activeScene={currentScene}
+          selectedSourceId={selectedSourceId}
+          onSelectSource={setSelectedSourceId}
+        />
+      </div>
+
+      {/* Divisor Arrastrable Horizontal */}
+      <Splitter
+        direction="horizontal"
+        onDragStart={handleStartResizeBottomDock}
+        title="Arrastra para redimensionar la bahía inferior de Escenas y Fuentes"
+      />
+
+      {/* Dock Dinámico de Escenas y Fuentes */}
+      <div
+        style={{ height: `${layout.bottomDockHeightPx}px` }}
+        className="pt-1.5 flex items-stretch gap-1.5 min-h-[120px] max-h-[500px]"
+      >
+        {layout.dockOrder[0] === 'scenes' ? (
+          <>
+            <div style={{ width: `calc(${layout.scenesWidthPercent}% - 3px)` }} className="h-full">
+              <SceneList
+                scenes={config.scenes}
+                activeSceneId={config.activeSceneId}
+                onSelectScene={handleSelectScene}
+                onAddScene={handleAddScene}
+                onRenameScene={handleRenameScene}
+                onDuplicateScene={handleDuplicateScene}
+                onDeleteScene={handleDeleteScene}
+                onImportScenes={handleImportScenes}
+              />
+            </div>
+            <Splitter
+              direction="vertical"
+              onDragStart={handleStartResizeDocks}
+              title="Arrastra para cambiar proporción entre Escenas y Fuentes"
+            />
+            <div style={{ width: `calc(${100 - layout.scenesWidthPercent}% - 3px)` }} className="h-full">
+              <SourceList
+                sources={currentScene.sources}
+                selectedSourceId={selectedSourceId}
+                onSelectSource={setSelectedSourceId}
+                onToggleVisibility={handleToggleVisibility}
+                onToggleLock={handleToggleLock}
+                onDeleteSource={handleDeleteSource}
+                onMoveSource={handleMoveSource}
+                onAddSource={handleAddSource}
+                onUpdateSource={handleUpdateSource}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ width: `calc(${100 - layout.scenesWidthPercent}% - 3px)` }} className="h-full">
+              <SourceList
+                sources={currentScene.sources}
+                selectedSourceId={selectedSourceId}
+                onSelectSource={setSelectedSourceId}
+                onToggleVisibility={handleToggleVisibility}
+                onToggleLock={handleToggleLock}
+                onDeleteSource={handleDeleteSource}
+                onMoveSource={handleMoveSource}
+                onAddSource={handleAddSource}
+                onUpdateSource={handleUpdateSource}
+              />
+            </div>
+            <Splitter
+              direction="vertical"
+              onDragStart={handleStartResizeDocks}
+              title="Arrastra para cambiar proporción entre Escenas y Fuentes"
+            />
+            <div style={{ width: `calc(${layout.scenesWidthPercent}% - 3px)` }} className="h-full">
+              <SceneList
+                scenes={config.scenes}
+                activeSceneId={config.activeSceneId}
+                onSelectScene={handleSelectScene}
+                onAddScene={handleAddScene}
+                onRenameScene={handleRenameScene}
+                onDuplicateScene={handleDuplicateScene}
+                onDeleteScene={handleDeleteScene}
+                onImportScenes={handleImportScenes}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  );
+
+  // Renderizador de la barra lateral (Chat, Audio DSP y Telemetría)
+  const renderSidebar = () => (
+    <aside
+      style={{ width: `${layout.sidebarWidthPercent}%` }}
+      className="flex flex-col min-w-[240px] max-w-[600px] overflow-hidden"
+    >
+      {/* Cabecera Táctica del Dock de Control */}
+      <div className="flex items-center justify-between pb-1 px-0.5 text-[10px] font-mono text-gray-400">
+        <span className="flex items-center gap-1 font-bold text-gray-300 uppercase tracking-wider">
+          <ArrowLeftRight className="h-3 w-3 text-cyber-cyan" />
+          <span>Panel Lateral ({layout.sidebarPosition === 'right' ? 'Derecho' : 'Izquierdo'})</span>
+        </span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={handleToggleSidebarPosition}
+            title={`Mover barra a la ${layout.sidebarPosition === 'right' ? 'izquierda' : 'derecha'}`}
+            className="flex items-center gap-1 px-1.5 py-0.2 rounded bg-surface hover:bg-surface-high border border-surface-high text-cyber-cyan transition-colors"
+          >
+            <span>⇄ {layout.sidebarPosition === 'right' ? 'A Izquierda' : 'A Derecha'}</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto">
+        {/* Chat Unificado con Canales Conectables */}
+        {layout.isChatExpanded && (
+          <div
+            style={{ height: `${layout.chatHeightPx}px` }}
+            className="flex flex-col shrink-0 min-h-[140px] max-h-[500px]"
+          >
+            <div className="flex items-center justify-between mb-1 px-0.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                <MessageSquare className="h-3 w-3 text-oxide-rust" />
+                Interacción Omnicanal
+              </span>
+              <button
+                type="button"
+                onClick={() => setLayout((prev) => ({ ...prev, isChatExpanded: false }))}
+                className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface hover:bg-surface-high text-gray-400 hover:text-white border border-surface-high transition-colors"
+              >
+                Ocultar
+              </button>
+            </div>
+
+            <div className="flex-1 min-h-0 flex flex-col">
+              <UnifiedChat
+                channels={config.chatChannels}
+                onUpdateChannels={handleUpdateChannels}
+              />
+            </div>
+          </div>
+        )}
+
+        {layout.isChatExpanded && (
+          <Splitter
+            direction="horizontal"
+            onDragStart={handleStartResizeChat}
+            title="Arrastra para ajustar alto del chat"
+          />
+        )}
+
+        {/* Mezclador de Audio WASAPI DSP (Stitch Professional Console) */}
+        {layout.isAudioExpanded && (
+          <div className="flex-1 bg-surface-low border border-surface-high rounded p-2.5 flex flex-col justify-between shadow-xs min-h-[140px]">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-200">
+                  <Sliders className="h-3.5 w-3.5 text-oxide-rust" />
+                  <span>Mezclador WASAPI DSP</span>
+                </div>
+                <div className="flex items-center gap-1 font-mono text-[9px]">
+                  <span className="px-1.5 py-0.2 rounded bg-surface border border-surface-high text-cyber-cyan font-bold">
+                    GATE -45dB
+                  </span>
+                  <span className="px-1.5 py-0.2 rounded bg-oxide-rust text-white font-bold">
+                    LIMITER -1dB
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setLayout((prev) => ({ ...prev, isAudioExpanded: false }))}
+                    className="ml-1 text-[10px] px-1 py-0.2 rounded bg-surface hover:bg-surface-high text-gray-400 hover:text-white border border-surface-high transition-colors"
+                  >
+                    Ocultar
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                {/* Canal 1: Audio del Escritorio */}
+                <div className="bg-surface p-1.5 rounded border border-surface-high flex flex-col gap-1">
+                  <div className="flex justify-between items-center text-[11px] text-gray-300">
+                    <span className="font-medium">Audio del Escritorio</span>
+                    <span className="text-cyber-cyan font-mono font-bold">-6.0 dBFS</span>
+                  </div>
+                  {/* Vúmetro Segmentado */}
+                  <div className="w-full h-2 bg-surface-lowest rounded-xs overflow-hidden flex gap-0.5 p-0.5 border border-surface-high">
+                    <div className={`h-full ${isLive ? 'bg-cyber-cyan w-[68%]' : 'bg-surface-high w-[20%]'}`} />
+                    <div className={`h-full ${isLive ? 'bg-oxide-rust w-[12%]' : 'bg-surface-high/50 w-[4%]'}`} />
+                    <div className="h-full bg-surface-lowest flex-1" />
+                  </div>
+                  <div className="flex items-center justify-between pt-0.5 text-[9px] font-mono text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <span className="px-1 py-0.2 rounded bg-surface-high text-gray-300 hover:text-white cursor-pointer">MUTE</span>
+                      <span className="px-1 py-0.2 rounded bg-surface-high text-gray-400 hover:text-cyber-cyan cursor-pointer">SOLO</span>
+                    </div>
+                    <span>Sidechain Ducking: ON</span>
+                  </div>
+                </div>
+
+                {/* Canal 2: Micrófono */}
+                <div className="bg-surface p-1.5 rounded border border-surface-high flex flex-col gap-1">
+                  <div className="flex justify-between items-center text-[11px] text-gray-300">
+                    <span className="font-medium">Micrófono (Puerta -45 dB | Limitador -1 dB)</span>
+                    <span className="text-cyber-cyan font-mono font-bold">-12.0 dBFS</span>
+                  </div>
+                  {/* Vúmetro Segmentado */}
+                  <div className="w-full h-2 bg-surface-lowest rounded-xs overflow-hidden flex gap-0.5 p-0.5 border border-surface-high">
+                    <div className={`h-full ${isLive ? 'bg-cyber-cyan w-[54%]' : 'bg-surface-high w-[15%]'}`} />
+                    <div className={`h-full ${isLive ? 'bg-oxide-rust w-[10%]' : 'bg-surface-high/50 w-[3%]'}`} />
+                    <div className="h-full bg-surface-lowest flex-1" />
+                  </div>
+                  <div className="flex items-center justify-between pt-0.5 text-[9px] font-mono text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <span className="px-1 py-0.2 rounded bg-surface-high text-gray-300 hover:text-white cursor-pointer">MUTE</span>
+                      <span className="px-1 py-0.2 rounded bg-surface-high text-gray-400 hover:text-cyber-cyan cursor-pointer">SOLO</span>
+                    </div>
+                    <span>WASAPI Buff: 1.3ms</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-1.5 border-t border-surface-high flex justify-between items-center text-[9px] text-gray-400 font-mono">
+              <span>Peak Limiter: -1.0 dBFS Activo</span>
+              <span>Noise Gate: -45.0 dBFS</span>
+            </div>
+          </div>
+        )}
+
+        {/* Telemetría de Red y Hardware (RTX 4050) */}
+        <div className="h-36 shrink-0 bg-surface-low border border-surface-high rounded p-2.5 flex flex-col justify-between shadow-xs">
+          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-gray-200">
+            <div className="flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5 text-cyber-cyan" />
+              <span>Telemetría de Red y Hardware</span>
+            </div>
+            <span className="text-[10px] font-mono text-cyber-cyan font-semibold">ESTADO ÓPTIMO</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
+            <div className="p-1.5 bg-surface rounded border border-surface-high">
+              <span className="text-gray-500 block text-[9px]">CPU (TOKIO WORKER)</span>
+              <span className="text-gray-200 font-semibold">{isLive ? '2.4%' : '0.9%'}</span>
+            </div>
+            <div className="p-1.5 bg-surface rounded border border-surface-high">
+              <span className="text-gray-500 block text-[9px]">RAM (INGEST RUST)</span>
+              <span className="text-cyber-cyan font-semibold">{isLive ? '42 MB' : '38 MB'}</span>
+            </div>
+            <div className="p-1.5 bg-surface rounded border border-surface-high">
+              <span className="text-gray-500 block text-[9px]">FPS DUAL</span>
+              <span className="text-gray-200 font-semibold">{isLive ? '60.0 SOLID' : '0.0'}</span>
+            </div>
+            <div className="p-1.5 bg-surface rounded border border-surface-high">
+              <span className="text-gray-500 block text-[9px]">BITRATE AGREGADO</span>
+              <span className="text-cyber-cyan font-semibold">
+                {isLive ? '11.0 Mbps' : '0.0 Mbps'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
 
   return (
     <div className="min-h-screen bg-surface-lowest text-gray-200 flex flex-col font-sans select-none">
@@ -365,14 +778,18 @@ export const App: React.FC = () => {
         onDuplicateScene={() => handleDuplicateScene()}
         onDeleteScene={() => handleDeleteScene()}
         onOpenConnections={() => setIsConnectionsOpen(true)}
-        onOpenChatChannels={() => setIsChatExpanded(true)}
-        isChatExpanded={isChatExpanded}
-        onToggleChat={() => setIsChatExpanded(!isChatExpanded)}
-        isAudioExpanded={isAudioExpanded}
-        onToggleAudio={() => setIsAudioExpanded(!isAudioExpanded)}
+        onOpenChatChannels={() => setLayout((prev) => ({ ...prev, isChatExpanded: true }))}
+        isChatExpanded={layout.isChatExpanded}
+        onToggleChat={() => setLayout((prev) => ({ ...prev, isChatExpanded: !prev.isChatExpanded }))}
+        isAudioExpanded={layout.isAudioExpanded}
+        onToggleAudio={() => setLayout((prev) => ({ ...prev, isAudioExpanded: !prev.isAudioExpanded }))}
         isBroadcasting={isLive}
         onToggleBroadcast={toggleBroadcast}
         onShowAbout={() => setIsAboutOpen(true)}
+        sidebarPosition={layout.sidebarPosition}
+        onToggleSidebarPosition={handleToggleSidebarPosition}
+        onSwapDocksOrder={handleSwapDocksOrder}
+        onResetLayout={handleResetLayout}
       />
 
       {/* Sub-Header Studio Action Bar & Multi-Destination Pipeline (Stitch Ribbon) */}
@@ -443,181 +860,33 @@ export const App: React.FC = () => {
         className="hidden"
       />
 
-      {/* Main Studio Viewport */}
-      <main className="flex-1 p-3 grid grid-cols-12 gap-3 overflow-hidden">
-        {/* Canvas & Stream Preview */}
-        <section className="col-span-8 flex flex-col gap-3 overflow-y-auto">
-          <DualCanvas
-            activeScene={currentScene}
-            selectedSourceId={selectedSourceId}
-            onSelectSource={setSelectedSourceId}
+      {/* Main Studio Viewport (Modular Dockable Workspace with Resizable Splitters) */}
+      <main
+        ref={mainContainerRef}
+        className="flex-1 p-2 flex overflow-hidden gap-1"
+      >
+        {/* Posición lateral izquierda si está configurada */}
+        {layout.sidebarPosition === 'left' && renderSidebar()}
+        {layout.sidebarPosition === 'left' && (
+          <Splitter
+            direction="vertical"
+            onDragStart={handleStartResizeSidebar}
+            title="Arrastra para cambiar ancho de la barra lateral"
           />
+        )}
 
-          {/* Dock Dinámico de Escenas y Fuentes */}
-          <div className="h-44 grid grid-cols-2 gap-3">
-            <SceneList
-              scenes={config.scenes}
-              activeSceneId={config.activeSceneId}
-              onSelectScene={handleSelectScene}
-              onAddScene={handleAddScene}
-              onRenameScene={handleRenameScene}
-              onDuplicateScene={handleDuplicateScene}
-              onDeleteScene={handleDeleteScene}
-              onImportScenes={handleImportScenes}
-            />
+        {/* Sección central principal (Lienzos y Bahía de Escenas/Fuentes) */}
+        {renderMainSection()}
 
-            <SourceList
-              sources={currentScene.sources}
-              selectedSourceId={selectedSourceId}
-              onSelectSource={setSelectedSourceId}
-              onToggleVisibility={handleToggleVisibility}
-              onToggleLock={handleToggleLock}
-              onDeleteSource={handleDeleteSource}
-              onMoveSource={handleMoveSource}
-              onAddSource={handleAddSource}
-              onUpdateSource={handleUpdateSource}
-            />
-          </div>
-        </section>
-
-        {/* Right Sidebar - Audio, Telemetry & Unified Chat */}
-        <aside className="col-span-4 flex flex-col gap-2.5 overflow-y-auto">
-          {/* Chat Unificado con Canales Conectables */}
-          {isChatExpanded && (
-            <div className="flex flex-col">
-              <div className="flex items-center justify-between mb-1 px-0.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
-                  <MessageSquare className="h-3 w-3 text-oxide-rust" />
-                  Interacción Omnicanal
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsChatExpanded(false)}
-                  className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface hover:bg-surface-high text-gray-400 hover:text-white border border-surface-high transition-colors"
-                >
-                  Ocultar
-                </button>
-              </div>
-
-              <div className="h-64 mb-1 flex flex-col">
-                <UnifiedChat
-                  channels={config.chatChannels}
-                  onUpdateChannels={handleUpdateChannels}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Mezclador de Audio WASAPI DSP (Stitch Professional Console) */}
-          {isAudioExpanded && (
-            <div className="flex-1 bg-surface-low border border-surface-high rounded p-2.5 flex flex-col justify-between shadow-xs">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-200">
-                    <Sliders className="h-3.5 w-3.5 text-oxide-rust" />
-                    <span>Mezclador WASAPI DSP</span>
-                  </div>
-                  <div className="flex items-center gap-1 font-mono text-[9px]">
-                    <span className="px-1.5 py-0.2 rounded bg-surface border border-surface-high text-cyber-cyan font-bold">
-                      GATE -45dB
-                    </span>
-                    <span className="px-1.5 py-0.2 rounded bg-oxide-rust text-white font-bold">
-                      LIMITER -1dB
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsAudioExpanded(false)}
-                      className="ml-1 text-[10px] px-1 py-0.2 rounded bg-surface hover:bg-surface-high text-gray-400 hover:text-white border border-surface-high transition-colors"
-                    >
-                      Ocultar
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  {/* Canal 1: Audio del Escritorio */}
-                  <div className="bg-surface p-1.5 rounded border border-surface-high flex flex-col gap-1">
-                    <div className="flex justify-between items-center text-[11px] text-gray-300">
-                      <span className="font-medium">Audio del Escritorio</span>
-                      <span className="text-cyber-cyan font-mono font-bold">-6.0 dBFS</span>
-                    </div>
-                    {/* Vúmetro Segmentado */}
-                    <div className="w-full h-2 bg-surface-lowest rounded-xs overflow-hidden flex gap-0.5 p-0.5 border border-surface-high">
-                      <div className={`h-full ${isLive ? 'bg-cyber-cyan w-[68%]' : 'bg-surface-high w-[20%]'}`} />
-                      <div className={`h-full ${isLive ? 'bg-oxide-rust w-[12%]' : 'bg-surface-high/50 w-[4%]'}`} />
-                      <div className="h-full bg-surface-lowest flex-1" />
-                    </div>
-                    <div className="flex items-center justify-between pt-0.5 text-[9px] font-mono text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <span className="px-1 py-0.2 rounded bg-surface-high text-gray-300 hover:text-white cursor-pointer">MUTE</span>
-                        <span className="px-1 py-0.2 rounded bg-surface-high text-gray-400 hover:text-cyber-cyan cursor-pointer">SOLO</span>
-                      </div>
-                      <span>Sidechain Ducking: ON</span>
-                    </div>
-                  </div>
-
-                  {/* Canal 2: Micrófono */}
-                  <div className="bg-surface p-1.5 rounded border border-surface-high flex flex-col gap-1">
-                    <div className="flex justify-between items-center text-[11px] text-gray-300">
-                      <span className="font-medium">Micrófono (Puerta -45 dB | Limitador -1 dB)</span>
-                      <span className="text-cyber-cyan font-mono font-bold">-12.0 dBFS</span>
-                    </div>
-                    {/* Vúmetro Segmentado */}
-                    <div className="w-full h-2 bg-surface-lowest rounded-xs overflow-hidden flex gap-0.5 p-0.5 border border-surface-high">
-                      <div className={`h-full ${isLive ? 'bg-cyber-cyan w-[54%]' : 'bg-surface-high w-[15%]'}`} />
-                      <div className={`h-full ${isLive ? 'bg-oxide-rust w-[10%]' : 'bg-surface-high/50 w-[3%]'}`} />
-                      <div className="h-full bg-surface-lowest flex-1" />
-                    </div>
-                    <div className="flex items-center justify-between pt-0.5 text-[9px] font-mono text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <span className="px-1 py-0.2 rounded bg-surface-high text-gray-300 hover:text-white cursor-pointer">MUTE</span>
-                        <span className="px-1 py-0.2 rounded bg-surface-high text-gray-400 hover:text-cyber-cyan cursor-pointer">SOLO</span>
-                      </div>
-                      <span>WASAPI Buff: 1.3ms</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-1.5 border-t border-surface-high flex justify-between items-center text-[9px] text-gray-400 font-mono">
-                <span>Peak Limiter: -1.0 dBFS Activo</span>
-                <span>Noise Gate: -45.0 dBFS</span>
-              </div>
-            </div>
-          )}
-
-          {/* Telemetría de Red y Hardware (RTX 4050) */}
-          <div className="h-36 bg-surface-low border border-surface-high rounded p-2.5 flex flex-col justify-between shadow-xs">
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-gray-200">
-              <div className="flex items-center gap-1.5">
-                <Activity className="h-3.5 w-3.5 text-cyber-cyan" />
-                <span>Telemetría de Red y Hardware</span>
-              </div>
-              <span className="text-[10px] font-mono text-cyber-cyan font-semibold">ESTADO ÓPTIMO</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
-              <div className="p-1.5 bg-surface rounded border border-surface-high">
-                <span className="text-gray-500 block text-[9px]">CPU (TOKIO WORKER)</span>
-                <span className="text-gray-200 font-semibold">{isLive ? '2.4%' : '0.9%'}</span>
-              </div>
-              <div className="p-1.5 bg-surface rounded border border-surface-high">
-                <span className="text-gray-500 block text-[9px]">RAM (INGEST RUST)</span>
-                <span className="text-cyber-cyan font-semibold">{isLive ? '42 MB' : '38 MB'}</span>
-              </div>
-              <div className="p-1.5 bg-surface rounded border border-surface-high">
-                <span className="text-gray-500 block text-[9px]">FPS DUAL</span>
-                <span className="text-gray-200 font-semibold">{isLive ? '60.0 SOLID' : '0.0'}</span>
-              </div>
-              <div className="p-1.5 bg-surface rounded border border-surface-high">
-                <span className="text-gray-500 block text-[9px]">BITRATE AGREGADO</span>
-                <span className="text-cyber-cyan font-semibold">
-                  {isLive ? '11.0 Mbps' : '0.0 Mbps'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </aside>
+        {/* Posición lateral derecha (predeterminada) */}
+        {layout.sidebarPosition === 'right' && (
+          <Splitter
+            direction="vertical"
+            onDragStart={handleStartResizeSidebar}
+            title="Arrastra para cambiar ancho de la barra lateral"
+          />
+        )}
+        {layout.sidebarPosition === 'right' && renderSidebar()}
       </main>
 
       {/* Modal de Conexiones de Streaming */}

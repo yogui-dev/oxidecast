@@ -15,6 +15,9 @@ import {
   ShieldCheck,
   Activity,
   Sparkles,
+  Columns3,
+  ArrowLeftRight,
+  RotateCcw,
 } from 'lucide-react';
 
 interface MenuBarProps {
@@ -32,6 +35,10 @@ interface MenuBarProps {
   isBroadcasting: boolean;
   onToggleBroadcast: () => void;
   onShowAbout: () => void;
+  sidebarPosition?: 'left' | 'right';
+  onToggleSidebarPosition?: () => void;
+  onSwapDocksOrder?: () => void;
+  onResetLayout?: () => void;
 }
 
 type MenuKey = 'archivo' | 'editar' | 'ver' | 'transmision' | 'herramientas' | 'ayuda' | null;
@@ -51,6 +58,10 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   isBroadcasting,
   onToggleBroadcast,
   onShowAbout,
+  sidebarPosition = 'right',
+  onToggleSidebarPosition,
+  onSwapDocksOrder,
+  onResetLayout,
 }) => {
   const [openMenu, setOpenMenu] = useState<MenuKey>(null);
   const menuBarRef = useRef<HTMLDivElement>(null);
@@ -261,7 +272,45 @@ export const MenuBar: React.FC<MenuBarProps> = ({
               </span>
             </button>
 
-            <div className="my-1 border-t border-gray-800" />
+            <div className="my-1 border-t border-surface-high" />
+
+            {onToggleSidebarPosition && (
+              <button
+                onClick={() => handleAction(onToggleSidebarPosition)}
+                className="w-full text-left px-3 py-1.5 hover:bg-surface-high flex items-center justify-between text-gray-200"
+              >
+                <span className="flex items-center gap-2">
+                  <Columns3 className="h-3.5 w-3.5 text-cyber-cyan" />
+                  {sidebarPosition === 'left' ? 'Mover Barra Lateral a la Derecha' : 'Mover Barra Lateral a la Izquierda'}
+                </span>
+              </button>
+            )}
+
+            {onSwapDocksOrder && (
+              <button
+                onClick={() => handleAction(onSwapDocksOrder)}
+                className="w-full text-left px-3 py-1.5 hover:bg-surface-high flex items-center justify-between text-gray-200"
+              >
+                <span className="flex items-center gap-2">
+                  <ArrowLeftRight className="h-3.5 w-3.5 text-oxide-rust" />
+                  Intercambiar Posición Escenas / Fuentes
+                </span>
+              </button>
+            )}
+
+            {onResetLayout && (
+              <button
+                onClick={() => handleAction(onResetLayout)}
+                className="w-full text-left px-3 py-1.5 hover:bg-surface-high flex items-center justify-between text-oxide-rust-light"
+              >
+                <span className="flex items-center gap-2">
+                  <RotateCcw className="h-3.5 w-3.5 text-oxide-rust" />
+                  Restablecer Disposición de Paneles
+                </span>
+              </button>
+            )}
+
+            <div className="my-1 border-t border-surface-high" />
 
             <button
               onClick={() => {
@@ -272,7 +321,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 }
                 setOpenMenu(null);
               }}
-              className="w-full text-left px-3 py-1.5 hover:bg-gray-800 flex items-center justify-between text-gray-200"
+              className="w-full text-left px-3 py-1.5 hover:bg-surface-high flex items-center justify-between text-gray-200"
             >
               <span className="flex items-center gap-2">
                 <Maximize2 className="h-3.5 w-3.5 text-purple-400" />
