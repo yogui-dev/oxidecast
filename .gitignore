@@ -4,3 +4,5 @@ dist/
 target/
 .cargo/
 src-tauri/.cargo/
+stitch_preview.html
+stitch_design_preview.png

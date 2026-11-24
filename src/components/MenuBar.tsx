@@ -95,7 +95,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   return (
     <div
       ref={menuBarRef}
-      className="h-7 bg-oxide-surface/90 border-b border-gray-800/80 px-4 flex items-center gap-1 select-none text-[12px] font-medium text-gray-300 relative z-40"
+      className="h-7 bg-surface-lowest border-b border-surface-high px-4 flex items-center gap-1 select-none text-[12px] font-medium text-gray-300 relative z-40"
     >
       {/* --- MENÚ: ARCHIVO --- */}
       <div className="relative">
@@ -105,34 +105,34 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           onMouseEnter={() => handleMenuHover('archivo')}
           className={`px-2.5 py-0.5 rounded transition-colors ${
             openMenu === 'archivo'
-              ? 'bg-gray-800 text-white'
-              : 'hover:bg-gray-800/60 hover:text-white'
+              ? 'bg-surface-high text-white font-semibold'
+              : 'hover:bg-surface-high/60 hover:text-white'
           }`}
         >
           Archivo
         </button>
 
         {openMenu === 'archivo' && (
-          <div className="absolute left-0 top-full mt-1 w-64 bg-gray-900 border border-gray-700/80 rounded-lg shadow-2xl py-1 z-50 text-xs">
+          <div className="absolute left-0 top-full mt-1 w-64 bg-surface border border-surface-high rounded shadow-2xl py-1 z-50 text-xs">
             <button
               onClick={() => handleAction(onNewScene)}
-              className="w-full text-left px-3 py-1.5 hover:bg-gray-800 flex items-center justify-between text-gray-200"
+              className="w-full text-left px-3 py-1.5 hover:bg-surface-high flex items-center justify-between text-gray-200"
             >
               <span className="flex items-center gap-2">
-                <Plus className="h-3.5 w-3.5 text-orange-400" />
+                <Plus className="h-3.5 w-3.5 text-oxide-rust" />
                 Nueva Escena
               </span>
               <span className="text-[10px] text-gray-500 font-mono">Ctrl+N</span>
             </button>
 
-            <div className="my-1 border-t border-gray-800" />
+            <div className="my-1 border-t border-surface-high" />
 
             <button
               onClick={() => handleAction(onImportObs)}
-              className="w-full text-left px-3 py-1.5 hover:bg-gray-800 flex items-center justify-between text-gray-200"
+              className="w-full text-left px-3 py-1.5 hover:bg-surface-high flex items-center justify-between text-gray-200"
             >
               <span className="flex items-center gap-2">
-                <FileDown className="h-3.5 w-3.5 text-blue-400" />
+                <FileDown className="h-3.5 w-3.5 text-cyber-cyan" />
                 Importar Colección de OBS Studio...
               </span>
               <span className="text-[10px] text-gray-500 font-mono">Ctrl+O</span>
@@ -140,10 +140,10 @@ export const MenuBar: React.FC<MenuBarProps> = ({
 
             <button
               onClick={() => handleAction(onExportConfig)}
-              className="w-full text-left px-3 py-1.5 hover:bg-gray-800 flex items-center justify-between text-gray-200"
+              className="w-full text-left px-3 py-1.5 hover:bg-surface-high flex items-center justify-between text-gray-200"
             >
               <span className="flex items-center gap-2">
-                <FileUp className="h-3.5 w-3.5 text-green-400" />
+                <FileUp className="h-3.5 w-3.5 text-cyber-green" />
                 Exportar Configuración (.json)...
               </span>
               <span className="text-[10px] text-gray-500 font-mono">Ctrl+S</span>

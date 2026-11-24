@@ -129,15 +129,15 @@ export const SourceList: React.FC<SourceListProps> = ({
     switch (type) {
       case 'screen':
       case 'window':
-        return <Monitor className="h-3.5 w-3.5 text-blue-400 shrink-0" />;
+        return <Monitor className="h-3.5 w-3.5 text-cyber-cyan shrink-0" />;
       case 'camera':
         return <Video className="h-3.5 w-3.5 text-oxide-rust shrink-0" />;
       case 'image':
-        return <ImageIcon className="h-3.5 w-3.5 text-green-400 shrink-0" />;
+        return <ImageIcon className="h-3.5 w-3.5 text-cyber-green shrink-0" />;
       case 'text':
         return <Type className="h-3.5 w-3.5 text-yellow-400 shrink-0" />;
       case 'browser':
-        return <Globe className="h-3.5 w-3.5 text-purple-400 shrink-0" />;
+        return <Globe className="h-3.5 w-3.5 text-oxide-lavender shrink-0" />;
       case 'color':
         return <Palette className="h-3.5 w-3.5 text-gray-400 shrink-0" />;
     }
@@ -154,71 +154,71 @@ export const SourceList: React.FC<SourceListProps> = ({
   };
 
   return (
-    <div className="bg-oxide-surface border border-gray-800 rounded-lg p-3 flex flex-col h-full shadow-inner">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-300">
-          <Monitor className="h-3.5 w-3.5 text-oxide-rust" />
-          <span>Fuentes ({sources.length})</span>
+    <div className="bg-surface-low border border-surface-high rounded p-2.5 flex flex-col h-full shadow-sm select-none">
+      {/* Header (Stitch Fuentes & Capas) */}
+      <div className="flex items-center justify-between pb-1.5 border-b border-surface-high/60 mb-1.5">
+        <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-200">
+          <Layers className="h-3.5 w-3.5 text-cyber-cyan" />
+          <span>Fuentes &amp; Capas ({sources.length})</span>
         </div>
 
         {/* Dropdown de Agregar Fuente */}
         <div className="relative group">
           <button
             type="button"
-            className="flex items-center gap-1 px-2 py-1 rounded bg-oxide-rust hover:bg-orange-600 text-white text-[11px] font-medium shadow-sm transition-colors"
+            className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface-high hover:bg-surface-highest text-cyber-cyan border border-surface-high text-[11px] font-mono font-semibold shadow-xs transition-colors"
           >
             <Plus className="h-3 w-3" />
             <span>Agregar Fuente</span>
           </button>
 
           {/* Menú Flotante de Tipos */}
-          <div className="absolute right-0 top-full mt-1 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl py-1 z-30 hidden group-hover:block hover:block">
+          <div className="absolute right-0 top-full mt-1 w-48 bg-surface border border-surface-high rounded shadow-2xl py-1 z-30 hidden group-hover:block hover:block font-mono text-[11px]">
             <button
               onClick={() => openAddModal('screen')}
-              className="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-gray-800 flex items-center gap-2"
+              className="w-full text-left px-3 py-1.5 text-gray-200 hover:bg-surface-high flex items-center gap-2"
             >
-              <Monitor className="h-3.5 w-3.5 text-blue-400" />
-              <span>Captura de Pantalla</span>
+              <Monitor className="h-3.5 w-3.5 text-cyber-cyan" />
+              <span>Captura Pantalla</span>
             </button>
             <button
               onClick={() => openAddModal('window')}
-              className="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-gray-800 flex items-center gap-2"
+              className="w-full text-left px-3 py-1.5 text-gray-200 hover:bg-surface-high flex items-center gap-2"
             >
               <Monitor className="h-3.5 w-3.5 text-blue-300" />
-              <span>Captura de Ventana</span>
+              <span>Captura Ventana</span>
             </button>
             <button
               onClick={() => openAddModal('camera')}
-              className="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-gray-800 flex items-center gap-2"
+              className="w-full text-left px-3 py-1.5 text-gray-200 hover:bg-surface-high flex items-center gap-2"
             >
               <Video className="h-3.5 w-3.5 text-oxide-rust" />
               <span>Cámara Web HD</span>
             </button>
             <button
               onClick={() => openAddModal('text')}
-              className="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-gray-800 flex items-center gap-2"
+              className="w-full text-left px-3 py-1.5 text-gray-200 hover:bg-surface-high flex items-center gap-2"
             >
               <Type className="h-3.5 w-3.5 text-yellow-400" />
-              <span>Texto / Marcador</span>
+              <span>Texto / Título</span>
             </button>
             <button
               onClick={() => openAddModal('browser')}
-              className="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-gray-800 flex items-center gap-2"
+              className="w-full text-left px-3 py-1.5 text-gray-200 hover:bg-surface-high flex items-center gap-2"
             >
-              <Globe className="h-3.5 w-3.5 text-purple-400" />
-              <span>Fuente de Navegador</span>
+              <Globe className="h-3.5 w-3.5 text-oxide-lavender" />
+              <span>Widget Web</span>
             </button>
             <button
               onClick={() => openAddModal('image')}
-              className="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-gray-800 flex items-center gap-2"
+              className="w-full text-left px-3 py-1.5 text-gray-200 hover:bg-surface-high flex items-center gap-2"
             >
-              <ImageIcon className="h-3.5 w-3.5 text-green-400" />
+              <ImageIcon className="h-3.5 w-3.5 text-cyber-green" />
               <span>Imagen / Logo</span>
             </button>
             <button
               onClick={() => openAddModal('color')}
-              className="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-gray-800 flex items-center gap-2"
+              className="w-full text-left px-3 py-1.5 text-gray-200 hover:bg-surface-high flex items-center gap-2"
             >
               <Palette className="h-3.5 w-3.5 text-gray-400" />
               <span>Fondo Sólido</span>
@@ -228,7 +228,7 @@ export const SourceList: React.FC<SourceListProps> = ({
       </div>
 
       {/* Lista Desplazable de Fuentes */}
-      <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto space-y-1 pr-0.5">
         {sources.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-gray-500 text-xs py-6">
             <Layers className="h-6 w-6 text-gray-600 mb-2" />
@@ -243,10 +243,10 @@ export const SourceList: React.FC<SourceListProps> = ({
               <div
                 key={src.id}
                 onClick={() => onSelectSource(src.id)}
-                className={`group flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors cursor-pointer border ${
+                className={`group flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors cursor-pointer border ${
                   isSelected
-                    ? 'bg-gray-800/95 border-gray-600 text-white shadow-sm'
-                    : 'bg-gray-900/40 border-gray-800/60 text-gray-300 hover:bg-gray-800/40'
+                    ? 'bg-surface-highest border-cyber-cyan/50 text-white shadow-xs'
+                    : 'bg-surface border-surface-high text-gray-300 hover:bg-surface-high'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
@@ -255,35 +255,35 @@ export const SourceList: React.FC<SourceListProps> = ({
                     {src.name}
                   </span>
 
-                  {/* Badge de Lienzo Destino (16:9, 9:16 o Ambos) */}
+                  {/* Badge de Lienzo Destino (DUAL CANVAS, 16:9 ONLY, 9:16 ONLY) */}
                   <button
                     type="button"
                     onClick={(e) => cycleTargetCanvas(src, e)}
-                    title={`Lienzo: ${src.targetCanvas} (Clic para cambiar)`}
-                    className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium flex items-center gap-1 border bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500"
+                    title={`Lienzo: ${src.targetCanvas} (Clic para alternar)`}
+                    className="px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold flex items-center gap-1 border bg-surface-lowest border-surface-high text-gray-300 hover:border-gray-500"
                   >
                     {src.targetCanvas === 'both' ? (
                       <>
-                        <Tv className="h-2.5 w-2.5 text-blue-400" />
-                        <Smartphone className="h-2.5 w-2.5 text-pink-400" />
-                        <span>Dual</span>
+                        <Tv className="h-2.5 w-2.5 text-cyber-cyan" />
+                        <Smartphone className="h-2.5 w-2.5 text-oxide-rust" />
+                        <span className="text-cyber-cyan">DUAL CANVAS</span>
                       </>
                     ) : src.targetCanvas === 'horizontal' ? (
                       <>
-                        <Tv className="h-2.5 w-2.5 text-blue-400" />
-                        <span>16:9</span>
+                        <Tv className="h-2.5 w-2.5 text-oxide-rust" />
+                        <span className="text-oxide-rust">16:9 ONLY</span>
                       </>
                     ) : (
                       <>
-                        <Smartphone className="h-2.5 w-2.5 text-pink-400" />
-                        <span>9:16</span>
+                        <Smartphone className="h-2.5 w-2.5 text-cyber-cyan" />
+                        <span className="text-cyber-cyan">9:16 ONLY</span>
                       </>
                     )}
                   </button>
                 </div>
 
                 {/* Acciones por Fuente */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                   {/* Visibilidad */}
                   <button
                     type="button"
@@ -291,7 +291,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                       e.stopPropagation();
                       onToggleVisibility(src.id);
                     }}
-                    className="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-700/60"
+                    className="p-1 text-gray-400 hover:text-white rounded hover:bg-surface-highest"
                     title={src.visible ? 'Ocultar fuente' : 'Mostrar fuente'}
                   >
                     {src.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3 text-gray-600" />}
@@ -304,10 +304,10 @@ export const SourceList: React.FC<SourceListProps> = ({
                       e.stopPropagation();
                       onToggleLock(src.id);
                     }}
-                    className="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-700/60"
+                    className="p-1 text-gray-400 hover:text-white rounded hover:bg-surface-highest"
                     title={src.locked ? 'Desbloquear fuente' : 'Bloquear fuente'}
                   >
-                    {src.locked ? <Lock className="h-3 w-3 text-orange-400" /> : <Unlock className="h-3 w-3" />}
+                    {src.locked ? <Lock className="h-3 w-3 text-oxide-rust" /> : <Unlock className="h-3 w-3 text-gray-500" />}
                   </button>
 
                   {/* Reordenar Z-Index */}
@@ -321,7 +321,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                     className={`p-1 rounded ${
                       index === 0
                         ? 'text-gray-700 cursor-not-allowed'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700/60'
+                        : 'text-gray-400 hover:text-white hover:bg-surface-highest'
                     }`}
                     title="Subir capa"
                   >
@@ -337,7 +337,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                     className={`p-1 rounded ${
                       index === sources.length - 1
                         ? 'text-gray-700 cursor-not-allowed'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700/60'
+                        : 'text-gray-400 hover:text-white hover:bg-surface-highest'
                     }`}
                     title="Bajar capa"
                   >
@@ -351,7 +351,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                       e.stopPropagation();
                       setEditingSource(src);
                     }}
-                    className="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-700/60"
+                    className="p-1 text-gray-400 hover:text-white rounded hover:bg-surface-highest"
                     title="Propiedades de la fuente"
                   >
                     <Settings className="h-3 w-3" />
@@ -380,9 +380,9 @@ export const SourceList: React.FC<SourceListProps> = ({
 
       {/* Modal Agregar Fuente */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-oxide-surface border border-gray-700 rounded-xl p-5 max-w-md w-full shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-low border border-surface-high rounded-xl p-5 max-w-md w-full shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-surface-high pb-2">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Plus className="h-4 w-4 text-oxide-rust" />
                 Agregar Fuente: {newType.toUpperCase()}
@@ -402,7 +402,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-orange-500"
+                  className="w-full bg-surface-lowest border border-surface-high rounded px-3 py-1.5 text-white focus:outline-none focus:border-oxide-rust font-sans"
                 />
               </div>
 
@@ -411,7 +411,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                 <select
                   value={newCanvas}
                   onChange={(e) => setNewCanvas(e.target.value as TargetCanvas)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-orange-500"
+                  className="w-full bg-surface-lowest border border-surface-high rounded px-3 py-1.5 text-white focus:outline-none focus:border-oxide-rust font-mono text-[11px]"
                 >
                   <option value="both">Dual (16:9 Horizontal y 9:16 Vertical)</option>
                   <option value="horizontal">Solo Horizontal (16:9 YouTube / Twitch)</option>
@@ -426,7 +426,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                     type="text"
                     value={newText}
                     onChange={(e) => setNewText(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-lowest border border-surface-high rounded px-3 py-1.5 text-white focus:outline-none focus:border-oxide-rust"
                   />
                 </div>
               )}
@@ -438,7 +438,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                     type="url"
                     value={newUrl}
                     onChange={(e) => setNewUrl(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-lowest border border-surface-high rounded px-3 py-1.5 text-white focus:outline-none focus:border-oxide-rust"
                   />
                 </div>
               )}
@@ -459,18 +459,18 @@ export const SourceList: React.FC<SourceListProps> = ({
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 mt-5 pt-3 border-t border-gray-800">
+            <div className="flex items-center justify-end gap-2 mt-5 pt-3 border-t border-surface-high">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded font-medium text-xs"
+                className="px-3 py-1.5 bg-surface-high hover:bg-surface-highest text-gray-300 rounded font-medium text-xs font-mono"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleConfirmAdd}
-                className="px-4 py-1.5 bg-oxide-rust hover:bg-orange-600 text-white rounded font-medium text-xs flex items-center gap-1 shadow-md"
+                className="px-4 py-1.5 bg-oxide-rust hover:bg-orange-600 text-white rounded font-medium text-xs flex items-center gap-1 shadow-md font-mono"
               >
                 <Check className="h-3.5 w-3.5" />
                 <span>Agregar</span>
@@ -482,9 +482,9 @@ export const SourceList: React.FC<SourceListProps> = ({
 
       {/* Modal Editar Propiedades */}
       {editingSource && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-oxide-surface border border-gray-700 rounded-xl p-5 max-w-md w-full shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-low border border-surface-high rounded-xl p-5 max-w-md w-full shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-surface-high pb-2">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Settings className="h-4 w-4 text-oxide-rust" />
                 Propiedades: {editingSource.name}
@@ -506,7 +506,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                   onChange={(e) =>
                     setEditingSource({ ...editingSource, name: e.target.value })
                   }
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-orange-500"
+                  className="w-full bg-surface-lowest border border-surface-high rounded px-3 py-1.5 text-white focus:outline-none focus:border-oxide-rust"
                 />
               </div>
 
@@ -520,7 +520,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                       targetCanvas: e.target.value as TargetCanvas,
                     })
                   }
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-orange-500"
+                  className="w-full bg-surface-lowest border border-surface-high rounded px-3 py-1.5 text-white focus:outline-none focus:border-oxide-rust font-mono text-[11px]"
                 >
                   <option value="both">Dual (16:9 y 9:16)</option>
                   <option value="horizontal">Solo Horizontal (16:9)</option>
@@ -543,7 +543,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                         },
                       })
                     }
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-lowest border border-surface-high rounded px-3 py-1.5 text-white focus:outline-none focus:border-oxide-rust"
                   />
                 </div>
               )}
@@ -563,17 +563,17 @@ export const SourceList: React.FC<SourceListProps> = ({
                         },
                       })
                     }
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-orange-500"
+                    className="w-full bg-surface-lowest border border-surface-high rounded px-3 py-1.5 text-white focus:outline-none focus:border-oxide-rust"
                   />
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 mt-5 pt-3 border-t border-gray-800">
+            <div className="flex items-center justify-end gap-2 mt-5 pt-3 border-t border-surface-high">
               <button
                 type="button"
                 onClick={() => setEditingSource(null)}
-                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded font-medium text-xs"
+                className="px-3 py-1.5 bg-surface-high hover:bg-surface-highest text-gray-300 rounded font-medium text-xs font-mono"
               >
                 Cancelar
               </button>
@@ -583,7 +583,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                   onUpdateSource(editingSource.id, editingSource);
                   setEditingSource(null);
                 }}
-                className="px-4 py-1.5 bg-oxide-rust hover:bg-orange-600 text-white rounded font-medium text-xs flex items-center gap-1 shadow-md"
+                className="px-4 py-1.5 bg-oxide-rust hover:bg-orange-600 text-white rounded font-medium text-xs flex items-center gap-1 shadow-md font-mono"
               >
                 <Check className="h-3.5 w-3.5" />
                 <span>Guardar Cambios</span>

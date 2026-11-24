@@ -1,13 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    background-color: #090D13;
-    color: #f3f4f6;
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #0A0E17;
+    color: #DFE2EF;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
     user-select: none;
     overflow-x: hidden;
+  }
+
+  /* Scrollbars tácticos minimalistas para paneles de transmisión */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0A0E17;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #262A34;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #31353F;
   }
 }

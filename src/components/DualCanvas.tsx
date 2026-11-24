@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import {
   Monitor,
   Video,
-  Smartphone,
-  Tv,
   Layers,
   Sparkles,
   Type,
@@ -107,24 +105,24 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
       case 'screen':
       case 'window':
         return (
-          <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center select-none">
-            <Monitor className="h-8 w-8 text-blue-400 mb-1 opacity-70" />
-            <span className="text-xs text-blue-200 font-semibold truncate max-w-[90%]">
+          <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center select-none bg-surface-lowest/90 backdrop-blur-sm">
+            <Monitor className="h-7 w-7 text-cyber-cyan mb-1 opacity-80" />
+            <span className="text-xs text-on-surface font-semibold truncate max-w-[90%]">
               {src.name}
             </span>
-            <span className="text-[10px] font-mono text-blue-300/80">
+            <span className="text-[10px] font-mono text-cyber-cyan/80">
               {isVertical ? 'WGC Recorte 9:16' : '1920×1080 WGC'}
             </span>
           </div>
         );
       case 'camera':
         return (
-          <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center select-none bg-oxide-rust/10">
-            <Video className="h-6 w-6 text-oxide-rust mb-1" />
+          <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center select-none bg-oxide-rust/15 backdrop-blur-sm border border-oxide-rust/30">
+            <Video className="h-6 w-6 text-oxide-rust mb-1 animate-pulse" />
             <span className="text-xs text-white font-medium truncate max-w-[90%]">
               {src.name}
             </span>
-            <span className="text-[9px] font-mono text-orange-200">
+            <span className="text-[9px] font-mono text-oxide-rust-light">
               MediaFoundation
             </span>
           </div>
@@ -142,12 +140,12 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
         );
       case 'browser':
         return (
-          <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center select-none bg-purple-950/20">
-            <Globe className="h-5 w-5 text-purple-400 mb-1" />
-            <span className="text-xs text-purple-200 font-medium truncate max-w-[90%]">
+          <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center select-none bg-oxide-lavender/15 backdrop-blur-sm">
+            <Globe className="h-5 w-5 text-oxide-lavender mb-1" />
+            <span className="text-xs text-on-surface font-medium truncate max-w-[90%]">
               {src.name}
             </span>
-            <span className="text-[9px] font-mono text-purple-400 truncate max-w-[90%]">
+            <span className="text-[9px] font-mono text-oxide-lavender truncate max-w-[90%]">
               {src.properties.url || 'Widget Web'}
             </span>
           </div>
@@ -163,9 +161,9 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
         );
       case 'image':
         return (
-          <div className="w-full h-full flex flex-col items-center justify-center p-2 select-none bg-green-950/20">
-            <ImageIcon className="h-6 w-6 text-green-400 mb-1" />
-            <span className="text-xs text-green-200 font-medium truncate max-w-[90%]">
+          <div className="w-full h-full flex flex-col items-center justify-center p-2 select-none bg-cyber-green/10">
+            <ImageIcon className="h-6 w-6 text-cyber-green mb-1" />
+            <span className="text-xs text-gray-200 font-medium truncate max-w-[90%]">
               {src.name}
             </span>
           </div>
@@ -174,31 +172,31 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col gap-3 min-h-0">
-      {/* Barra Superior del Dual-Canvas */}
-      <div className="bg-oxide-surface border border-gray-800 rounded-lg px-4 py-2 flex items-center justify-between shadow-sm">
+    <div className="flex-1 flex flex-col gap-2.5 min-h-0 select-none">
+      {/* Barra de Utilidad Superior del Dual-Canvas (Stitch Viewport Utility Bar) */}
+      <div className="bg-surface-low border border-surface-high rounded px-3 py-1.5 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Layers className="h-4 w-4 text-oxide-rust" />
-            <span className="text-sm font-semibold text-white">Vista Dual-Canvas</span>
+            <span className="text-xs font-bold text-white tracking-wide uppercase">Vista Dual-Canvas</span>
             {activeScene && (
-              <span className="text-xs text-orange-400 font-medium px-2 py-0.5 rounded bg-orange-950/40 border border-orange-900/40">
+              <span className="text-[11px] text-oxide-rust-light font-medium px-2 py-0.5 rounded bg-surface-card border border-oxide-rust/30">
                 {activeScene.name}
               </span>
             )}
           </div>
 
-          <div className="h-4 w-[1px] bg-gray-800" />
+          <div className="h-4 w-[1px] bg-surface-high" />
 
           {/* Selector de Fuentes para Inspección */}
-          <div className="flex items-center gap-1.5 bg-gray-900/80 p-1 rounded-md border border-gray-800 overflow-x-auto max-w-md">
+          <div className="flex items-center gap-1 bg-surface-lowest p-0.5 rounded border border-surface-high overflow-x-auto max-w-md">
             {sources.map((src) => (
               <button
                 key={src.id}
                 onClick={() => handleSelectSource(src.id)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs transition-colors shrink-0 ${
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono transition-colors shrink-0 ${
                   selectedSourceId === src.id
-                    ? 'bg-gray-800 text-white font-medium shadow'
+                    ? 'bg-surface-card text-white font-medium border border-surface-high shadow-sm'
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
@@ -207,7 +205,7 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
                 ) : src.type === 'text' ? (
                   <Type className="h-3 w-3 text-yellow-400" />
                 ) : (
-                  <Monitor className="h-3 w-3 text-blue-400" />
+                  <Monitor className="h-3 w-3 text-cyber-cyan" />
                 )}
                 <span>{src.name}</span>
               </button>
@@ -215,15 +213,15 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
           </div>
         </div>
 
-        {/* Indicador de Sincronización Inteligente */}
-        <div className="flex items-center gap-3">
+        {/* Indicadores de Sincronización Inteligente & Hardware Ingest */}
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={handleToggleSmartAnchor}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono transition-colors border ${
+            className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono transition-colors border ${
               smartAnchorActive
-                ? 'bg-orange-950/40 text-orange-400 border-orange-500/40 hover:bg-orange-900/50'
-                : 'bg-gray-800 text-gray-400 border-gray-700'
+                ? 'bg-surface-high text-oxide-rust-light border-oxide-rust/40 hover:bg-surface-highest'
+                : 'bg-surface-lowest text-gray-500 border-surface-high'
             }`}
             title="Sincronización inteligente de capas entre lienzos 16:9 y 9:16"
           >
@@ -231,36 +229,35 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
             <span>Sincronización Inteligente: {smartAnchorActive ? 'ACTIVA' : 'PAUSADA'}</span>
           </button>
 
-          <span className="text-[11px] font-mono text-gray-500 hidden sm:inline">
-            Zero-Copy VRAM
+          <span className="text-[10px] font-mono text-cyber-cyan bg-surface-lowest px-2 py-0.5 rounded border border-surface-high hidden sm:inline">
+            1.4ms Zero-Copy VRAM
           </span>
         </div>
       </div>
 
-      {/* Espacio Central: Ambos Lienzos Lado a Lado */}
-      <div className="flex-1 grid grid-cols-12 gap-4 items-stretch min-h-[360px]">
-        {/* Lienzo 1: Horizontal (16:9) */}
-        <div className="col-span-7 flex flex-col bg-oxide-surface border border-gray-800 rounded-lg p-3 overflow-hidden shadow-inner">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Tv className="h-4 w-4 text-blue-400" />
-              <h2 className="text-xs font-semibold text-gray-200 uppercase tracking-wide">
-                Lienzo Horizontal (16:9)
+      {/* Espacio Central: Ambos Lienzos (16:9 Horizontal y 9:16 Vertical) */}
+      <div className="flex-1 grid grid-cols-12 gap-3 items-stretch min-h-[350px]">
+        {/* Lienzo 1: Horizontal (16:9) PGM 1 */}
+        <div className="col-span-7 flex flex-col bg-surface-low border border-surface-high rounded overflow-hidden shadow-md">
+          {/* Canvas Top Tally Tag */}
+          <div className="bg-surface px-3 py-1 flex items-center justify-between border-b border-surface-high">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-oxide-rust animate-pulse" />
+              <h2 className="text-xs font-bold text-oxide-rust tracking-wider uppercase">
+                PGM 1 // 16:9 HORIZONTAL (YOUTUBE + TWITCH)
               </h2>
+              <span className="sr-only">Lienzo Horizontal (16:9)</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-gray-900 border border-gray-800 text-[10px] font-mono text-gray-300">
-                1920×1080 @ 60 FPS
-              </span>
-              <span className="px-2 py-0.5 rounded bg-blue-950/60 text-blue-400 border border-blue-900/50 text-[10px] font-mono">
-                Twitch / YouTube
-              </span>
+            <div className="flex items-center gap-2 font-mono text-[10px]">
+              <span className="text-gray-300">1920×1080 @ 60 FPS</span>
+              <span className="text-surface-high">•</span>
+              <span className="text-cyber-cyan font-semibold">HDR10 BT.2020</span>
             </div>
           </div>
 
           {/* Área de Visualización 16:9 */}
-          <div className="flex-1 bg-black rounded border border-gray-800 relative overflow-hidden flex items-center justify-center p-2">
-            <div className="w-full aspect-video bg-gray-950 rounded relative overflow-hidden border border-gray-850 shadow-2xl">
+          <div className="flex-1 bg-surface-lowest relative overflow-hidden flex items-center justify-center p-2">
+            <div className="w-full aspect-video bg-[#070A10] rounded relative overflow-hidden border border-surface-high shadow-2xl">
               {horizontalSources.length === 0 ? (
                 <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs font-mono">
                   Lienzo 16:9 Vacío (Sin fuentes activas)
@@ -288,8 +285,8 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
                       }}
                       className={`cursor-pointer transition-all rounded overflow-hidden ${
                         isSelected
-                          ? 'border-2 border-orange-500 ring-2 ring-orange-500/30 z-20 shadow-lg'
-                          : 'border border-gray-700/60 hover:border-gray-500 z-10'
+                          ? 'border-2 border-oxide-rust ring-2 ring-oxide-rust/40 z-20 shadow-lg'
+                          : 'border border-surface-high hover:border-gray-500 z-10'
                       }`}
                     >
                       {renderSourceContent(src, false)}
@@ -299,30 +296,44 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
               )}
             </div>
           </div>
+
+          {/* Bottom Telemetry Ribbon for 16:9 */}
+          <div className="bg-surface-low border-t border-surface-high px-3 py-1 flex items-center justify-between font-mono text-[10px] text-gray-400">
+            <div className="flex items-center gap-2">
+              <span className="text-cyber-cyan font-semibold">RTMP OUT: 6,500 kbps (CBR)</span>
+              <span>•</span>
+              <span>NVENC B-Frames: 2</span>
+              <span>•</span>
+              <span>Render: 1.2ms</span>
+            </div>
+            <div className="flex items-center gap-1 text-gray-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyber-green" />
+              <span>Buffer: 100% OK</span>
+            </div>
+          </div>
         </div>
 
-        {/* Lienzo 2: Vertical (9:16) */}
-        <div className="col-span-5 flex flex-col bg-oxide-surface border border-gray-800 rounded-lg p-3 overflow-hidden shadow-inner">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Smartphone className="h-4 w-4 text-pink-400" />
-              <h2 className="text-xs font-semibold text-gray-200 uppercase tracking-wide">
-                Lienzo Vertical (9:16)
+        {/* Lienzo 2: Vertical (9:16) PGM 2 */}
+        <div className="col-span-5 flex flex-col bg-surface-low border border-surface-high rounded overflow-hidden shadow-md">
+          {/* Canvas Top Tally Tag */}
+          <div className="bg-surface px-3 py-1 flex items-center justify-between border-b border-surface-high">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-cyber-cyan" />
+              <h2 className="text-xs font-bold text-cyber-cyan tracking-wider uppercase">
+                PGM 2 // 9:16 VERTICAL (TIKTOK LIVE)
               </h2>
+              <span className="sr-only">Lienzo Vertical (9:16)</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-gray-900 border border-gray-800 text-[10px] font-mono text-gray-300">
-                1080×1920
-              </span>
-              <span className="px-2 py-0.5 rounded bg-pink-950/60 text-pink-400 border border-pink-900/50 text-[10px] font-mono">
-                TikTok / Shorts
-              </span>
+            <div className="flex items-center gap-1.5 font-mono text-[10px]">
+              <span className="text-gray-300">1080×1920</span>
+              <span className="text-surface-high">•</span>
+              <span className="text-cyber-cyan font-semibold">Shorts</span>
             </div>
           </div>
 
           {/* Área de Visualización 9:16 */}
-          <div className="flex-1 bg-black rounded border border-gray-800 relative overflow-hidden flex items-center justify-center p-2">
-            <div className="h-full aspect-[9/16] bg-gray-950 rounded relative overflow-hidden border border-gray-850 shadow-2xl">
+          <div className="flex-1 bg-surface-lowest relative overflow-hidden flex items-center justify-center p-2">
+            <div className="h-full aspect-[9/16] bg-[#070A10] rounded relative overflow-hidden border border-surface-high shadow-2xl">
               {verticalSources.length === 0 ? (
                 <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs font-mono text-center p-4">
                   Lienzo 9:16 Vacío
@@ -366,8 +377,8 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
                       }}
                       className={`cursor-pointer transition-all rounded overflow-hidden ${
                         isSelected
-                          ? 'border-2 border-orange-500 ring-2 ring-orange-500/30 z-20 shadow-lg'
-                          : 'border border-gray-700/60 hover:border-gray-500 z-10'
+                          ? 'border-2 border-cyber-cyan ring-2 ring-cyber-cyan/40 z-20 shadow-lg'
+                          : 'border border-surface-high hover:border-gray-500 z-10'
                       }`}
                     >
                       {renderSourceContent(src, true)}
@@ -376,6 +387,12 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
                 })
               )}
             </div>
+          </div>
+
+          {/* Bottom Telemetry Ribbon for 9:16 */}
+          <div className="bg-surface-low border-t border-surface-high px-3 py-1 flex items-center justify-between font-mono text-[10px] text-gray-400">
+            <span className="text-cyber-cyan font-semibold">TIKTOK RTMP: 4,500 kbps</span>
+            <span>Vertical Render: 0.8ms</span>
           </div>
         </div>
       </div>

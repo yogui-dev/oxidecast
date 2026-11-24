@@ -7,6 +7,8 @@ import {
   Activity,
   MessageSquare,
   Settings,
+  Disc,
+  RotateCcw,
 } from 'lucide-react';
 import { DualCanvas } from './components/DualCanvas';
 import { UnifiedChat } from './components/UnifiedChat';
@@ -32,6 +34,8 @@ import { importObsCollection } from './utils/obsImporter';
 export const App: React.FC = () => {
   const [config, setConfig] = useState<StudioConfig>(() => loadStudioConfig());
   const [isLive, setIsLive] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isBufferActive, setIsBufferActive] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
   const [isAudioExpanded, setIsAudioExpanded] = useState(true);
   const [isConnectionsOpen, setIsConnectionsOpen] = useState(false);
@@ -165,30 +169,13 @@ export const App: React.FC = () => {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(config, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `oxidecast_profile_${Date.now()}.json`);
+    downloadAnchor.setAttribute('download', `oxidecast-config-${Date.now()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
   };
 
   // --- Handlers de Fuentes ---
-  const handleAddSource = (sourceData: Omit<SourceItem, 'id'>) => {
-    const newSource: SourceItem = {
-      ...sourceData,
-      id: `src-${Date.now()}`,
-    };
-
-    setConfig((prev) => ({
-      ...prev,
-      scenes: prev.scenes.map((s) =>
-        s.id === currentScene.id
-          ? { ...s, sources: [...s.sources, newSource] }
-          : s
-      ),
-    }));
-    setSelectedSourceId(newSource.id);
-  };
-
   const handleToggleVisibility = (id: string) => {
     setConfig((prev) => ({
       ...prev,
@@ -226,7 +213,10 @@ export const App: React.FC = () => {
       ...prev,
       scenes: prev.scenes.map((s) =>
         s.id === currentScene.id
-          ? { ...s, sources: s.sources.filter((src) => src.id !== id) }
+          ? {
+              ...s,
+              sources: s.sources.filter((src) => src.id !== id),
+            }
           : s
       ),
     }));
@@ -236,26 +226,44 @@ export const App: React.FC = () => {
   };
 
   const handleMoveSource = (id: string, direction: 'up' | 'down') => {
-    const sources = [...currentScene.sources];
-    const index = sources.findIndex((s) => s.id === id);
-    if (index === -1) return;
+    setConfig((prev) => ({
+      ...prev,
+      scenes: prev.scenes.map((s) => {
+        if (s.id !== currentScene.id) return s;
+        const index = s.sources.findIndex((src) => src.id === id);
+        if (index < 0) return s;
 
-    if (direction === 'up' && index > 0) {
-      const temp = sources[index];
-      sources[index] = sources[index - 1];
-      sources[index - 1] = temp;
-    } else if (direction === 'down' && index < sources.length - 1) {
-      const temp = sources[index];
-      sources[index] = sources[index + 1];
-      sources[index + 1] = temp;
-    }
+        const newSources = [...s.sources];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= newSources.length) return s;
+
+        const temp = newSources[index];
+        newSources[index] = newSources[targetIndex];
+        newSources[targetIndex] = temp;
+
+        return { ...s, sources: newSources };
+      }),
+    }));
+  };
+
+  const handleAddSource = (newSourceData: Omit<SourceItem, 'id'>) => {
+    const newSource: SourceItem = {
+      ...newSourceData,
+      id: `source-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    };
 
     setConfig((prev) => ({
       ...prev,
       scenes: prev.scenes.map((s) =>
-        s.id === currentScene.id ? { ...s, sources } : s
+        s.id === currentScene.id
+          ? {
+              ...s,
+              sources: [...s.sources, newSource],
+            }
+          : s
       ),
     }));
+    setSelectedSourceId(newSource.id);
   };
 
   const handleUpdateSource = (id: string, updates: Partial<SourceItem>) => {
@@ -285,61 +293,64 @@ export const App: React.FC = () => {
   const enabledDestinationsCount = config.destinations.filter((d) => d.enabled).length;
 
   return (
-    <div className="min-h-screen bg-oxide-canvas text-gray-200 flex flex-col font-sans select-none">
-      {/* Header Bar */}
-      <header className="h-12 border-b border-gray-800 bg-oxide-surface px-4 flex items-center justify-between">
+    <div className="min-h-screen bg-surface-lowest text-gray-200 flex flex-col font-sans select-none">
+      {/* Header Bar Workstation (Stitch Workstation Header) */}
+      <header className="h-12 border-b border-surface-high bg-surface-low px-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-7 w-7 rounded-lg bg-oxide-rust flex items-center justify-center text-white shadow-md">
+          <div className="h-7 w-7 rounded bg-oxide-rust flex items-center justify-center text-white shadow-sm">
             <Radio className="h-4 w-4" />
           </div>
           <div>
-            <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
-              OxideCast
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-gray-800 text-orange-400 font-mono font-medium border border-gray-700">
+            <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+              OxideCast Studio
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-surface border border-surface-high text-oxide-rust-light font-mono font-medium">
                 v0.1.0-release
+              </span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-surface border border-surface-high text-cyber-cyan font-mono font-medium hidden sm:inline">
+                🇨🇱 CL-PROD-NODE
               </span>
             </h1>
           </div>
         </div>
 
         {/* Live & Connections Controls */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {/* Botón Gestión de Conexiones */}
           <button
             type="button"
             onClick={() => setIsConnectionsOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-gray-900 hover:bg-gray-800 border border-gray-700 text-xs font-semibold text-gray-200 hover:text-white transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface hover:bg-surface-high border border-surface-high text-xs font-mono font-semibold text-gray-200 hover:text-white transition-colors shadow-xs"
           >
-            <Settings className="h-3.5 w-3.5 text-orange-400" />
+            <Settings className="h-3.5 w-3.5 text-cyber-cyan" />
             <span>Conexiones ({enabledDestinationsCount} Activas)</span>
           </button>
 
           {/* Indicador de Estado */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-900 border border-gray-800 rounded text-xs font-mono">
-            <Activity className={`h-3 w-3 ${isLive ? 'text-green-500 animate-pulse' : 'text-gray-500'}`} />
-            <span className={isLive ? 'text-green-400 font-semibold' : 'text-gray-400'}>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-lowest border border-surface-high rounded text-xs font-mono">
+            <Activity className={`h-3 w-3 ${isLive ? 'text-cyber-green animate-pulse' : 'text-gray-500'}`} />
+            <span className={isLive ? 'text-cyber-green font-bold' : 'text-gray-400'}>
               {isLive ? 'EN VIVO' : 'STANDBY'}
             </span>
           </div>
 
-          {/* Botón de Transmisión */}
+          {/* Botón Maestro de Transmisión */}
           <button
             onClick={toggleBroadcast}
-            className={`flex items-center gap-1.5 px-3.5 py-1 rounded-md font-medium text-xs transition-all duration-150 shadow-md ${
+            className={`flex items-center gap-1.5 px-3.5 py-1 rounded font-mono font-bold text-xs uppercase tracking-wider transition-all duration-150 ${
               isLive
-                ? 'bg-red-600 hover:bg-red-700 text-white'
-                : 'bg-oxide-rust hover:bg-orange-600 text-white active:scale-95'
+                ? 'bg-cyber-red hover:bg-red-700 text-white shadow-[0_0_12px_rgba(255,0,0,0.5)]'
+                : 'bg-oxide-rust hover:bg-orange-600 text-white shadow-[0_0_14px_rgba(255,87,34,0.4)] active:scale-95'
             }`}
           >
             {isLive ? (
               <>
                 <Square className="h-3.5 w-3.5 fill-current" />
-                Detener Emisión
+                <span>Detener Emisión</span>
               </>
             ) : (
               <>
                 <Play className="h-3.5 w-3.5 fill-current" />
-                Iniciar Emisión Dual
+                <span>Iniciar Emisión Dual</span>
               </>
             )}
           </button>
@@ -363,6 +374,65 @@ export const App: React.FC = () => {
         onToggleBroadcast={toggleBroadcast}
         onShowAbout={() => setIsAboutOpen(true)}
       />
+
+      {/* Sub-Header Studio Action Bar & Multi-Destination Pipeline (Stitch Ribbon) */}
+      <div className="w-full bg-surface-low border-b border-surface-high px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 shadow-xs select-none">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface border border-surface-high font-mono text-[10px]">
+            <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-cyber-green animate-pulse' : 'bg-cyber-cyan'}`} />
+            <span className="text-gray-300 font-semibold">
+              {isLive ? 'EN VIVO // DUAL EMISIÓN 16:9 + 9:16' : 'STANDBY // LISTO PARA EMISIÓN'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface border border-surface-high font-mono text-[10px] text-gray-400">
+            <span className="text-gray-500">DESTINOS:</span>
+            <span className="flex items-center gap-1 text-gray-200 font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyber-red" />YT
+              <span className="text-surface-high">•</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-cyber-purple" />Twitch
+              <span className="text-surface-high">•</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan" />TikTok
+              <span className="text-surface-high">•</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-cyber-green" />Kick
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-surface-high font-mono text-[10px] text-cyber-cyan hidden lg:flex">
+            <span>VRAM Ingest:</span>
+            <span className="font-bold">1.4ms Zero-Copy</span>
+          </div>
+        </div>
+
+        {/* Master Action CTA Group */}
+        <div className="flex items-center gap-1.5 font-mono text-[11px]">
+          <button
+            type="button"
+            onClick={() => setIsBufferActive(!isBufferActive)}
+            className={`px-2.5 py-0.5 rounded border flex items-center gap-1.5 transition-colors ${
+              isBufferActive
+                ? 'bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/50 font-semibold'
+                : 'bg-surface hover:bg-surface-high text-gray-300 border-surface-high'
+            }`}
+          >
+            <RotateCcw className="h-3 w-3 text-cyber-cyan" />
+            <span>Buffer Repetición</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsRecording(!isRecording)}
+            className={`px-2.5 py-0.5 rounded border flex items-center gap-1.5 transition-colors ${
+              isRecording
+                ? 'bg-cyber-red/20 text-cyber-red border-cyber-red/50 font-semibold'
+                : 'bg-surface hover:bg-surface-high text-gray-300 border-surface-high'
+            }`}
+          >
+            <Disc className={`h-3 w-3 ${isRecording ? 'text-cyber-red animate-pulse' : 'text-gray-400'}`} />
+            <span>Grabar Máster (ProRes 422)</span>
+          </button>
+        </div>
+      </div>
 
       {/* Input Oculto para Selección de Archivo OBS */}
       <input
@@ -423,7 +493,7 @@ export const App: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsChatExpanded(false)}
-                  className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 transition-colors"
+                  className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface hover:bg-surface-high text-gray-400 hover:text-white border border-surface-high transition-colors"
                 >
                   Ocultar
                 </button>
@@ -438,86 +508,111 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* Mezclador de Audio WASAPI */}
+          {/* Mezclador de Audio WASAPI DSP (Stitch Professional Console) */}
           {isAudioExpanded && (
-            <div className="flex-1 bg-oxide-surface border border-gray-800 rounded-lg p-2.5 flex flex-col justify-between">
+            <div className="flex-1 bg-surface-low border border-surface-high rounded p-2.5 flex flex-col justify-between shadow-xs">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                    <Sliders className="h-3 w-3 text-oxide-rust" />
-                    Mezclador de Audio (DSP / WASAPI)
+                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-200">
+                    <Sliders className="h-3.5 w-3.5 text-oxide-rust" />
+                    <span>Mezclador WASAPI DSP</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsAudioExpanded(false)}
-                    className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 transition-colors"
-                  >
-                    Ocultar
-                  </button>
+                  <div className="flex items-center gap-1 font-mono text-[9px]">
+                    <span className="px-1.5 py-0.2 rounded bg-surface border border-surface-high text-cyber-cyan font-bold">
+                      GATE -45dB
+                    </span>
+                    <span className="px-1.5 py-0.2 rounded bg-oxide-rust text-white font-bold">
+                      LIMITER -1dB
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsAudioExpanded(false)}
+                      className="ml-1 text-[10px] px-1 py-0.2 rounded bg-surface hover:bg-surface-high text-gray-400 hover:text-white border border-surface-high transition-colors"
+                    >
+                      Ocultar
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-2.5">
-                  <div>
-                    <div className="flex justify-between text-xs text-gray-300 mb-1">
-                      <span>Audio del Escritorio</span>
-                      <span className="text-gray-500 font-mono">-6.0 dBFS</span>
+                <div className="space-y-2 text-xs">
+                  {/* Canal 1: Audio del Escritorio */}
+                  <div className="bg-surface p-1.5 rounded border border-surface-high flex flex-col gap-1">
+                    <div className="flex justify-between items-center text-[11px] text-gray-300">
+                      <span className="font-medium">Audio del Escritorio</span>
+                      <span className="text-cyber-cyan font-mono font-bold">-6.0 dBFS</span>
                     </div>
-                    <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          isLive ? 'bg-green-500 w-[72%]' : 'bg-gray-700 w-[20%]'
-                        }`}
-                      />
+                    {/* Vúmetro Segmentado */}
+                    <div className="w-full h-2 bg-surface-lowest rounded-xs overflow-hidden flex gap-0.5 p-0.5 border border-surface-high">
+                      <div className={`h-full ${isLive ? 'bg-cyber-cyan w-[68%]' : 'bg-surface-high w-[20%]'}`} />
+                      <div className={`h-full ${isLive ? 'bg-oxide-rust w-[12%]' : 'bg-surface-high/50 w-[4%]'}`} />
+                      <div className="h-full bg-surface-lowest flex-1" />
+                    </div>
+                    <div className="flex items-center justify-between pt-0.5 text-[9px] font-mono text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <span className="px-1 py-0.2 rounded bg-surface-high text-gray-300 hover:text-white cursor-pointer">MUTE</span>
+                        <span className="px-1 py-0.2 rounded bg-surface-high text-gray-400 hover:text-cyber-cyan cursor-pointer">SOLO</span>
+                      </div>
+                      <span>Sidechain Ducking: ON</span>
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex justify-between text-xs text-gray-300 mb-1">
-                      <span>Micrófono (Puerta -45 dB | Limitador -1 dB)</span>
-                      <span className="text-gray-500 font-mono">-12.0 dBFS</span>
+                  {/* Canal 2: Micrófono */}
+                  <div className="bg-surface p-1.5 rounded border border-surface-high flex flex-col gap-1">
+                    <div className="flex justify-between items-center text-[11px] text-gray-300">
+                      <span className="font-medium">Micrófono (Puerta -45 dB | Limitador -1 dB)</span>
+                      <span className="text-cyber-cyan font-mono font-bold">-12.0 dBFS</span>
                     </div>
-                    <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          isLive ? 'bg-green-500 w-[58%]' : 'bg-gray-700 w-[15%]'
-                        }`}
-                      />
+                    {/* Vúmetro Segmentado */}
+                    <div className="w-full h-2 bg-surface-lowest rounded-xs overflow-hidden flex gap-0.5 p-0.5 border border-surface-high">
+                      <div className={`h-full ${isLive ? 'bg-cyber-cyan w-[54%]' : 'bg-surface-high w-[15%]'}`} />
+                      <div className={`h-full ${isLive ? 'bg-oxide-rust w-[10%]' : 'bg-surface-high/50 w-[3%]'}`} />
+                      <div className="h-full bg-surface-lowest flex-1" />
+                    </div>
+                    <div className="flex items-center justify-between pt-0.5 text-[9px] font-mono text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <span className="px-1 py-0.2 rounded bg-surface-high text-gray-300 hover:text-white cursor-pointer">MUTE</span>
+                        <span className="px-1 py-0.2 rounded bg-surface-high text-gray-400 hover:text-cyber-cyan cursor-pointer">SOLO</span>
+                      </div>
+                      <span>WASAPI Buff: 1.3ms</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-1.5 border-t border-gray-800/80 flex justify-between items-center text-[10px] text-gray-500 font-mono">
+              <div className="pt-1.5 border-t border-surface-high flex justify-between items-center text-[9px] text-gray-400 font-mono">
                 <span>Peak Limiter: -1.0 dBFS Activo</span>
                 <span>Noise Gate: -45.0 dBFS</span>
               </div>
             </div>
           )}
 
-          {/* Telemetría de Red y Hardware */}
-          <div className="h-36 bg-oxide-surface border border-gray-800 rounded-lg p-2.5 flex flex-col justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-              <Activity className="h-3 w-3 text-oxide-rust" />
-              Telemetría de Red y Hardware (RTX 4050)
+          {/* Telemetría de Red y Hardware (RTX 4050) */}
+          <div className="h-36 bg-surface-low border border-surface-high rounded p-2.5 flex flex-col justify-between shadow-xs">
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-gray-200">
+              <div className="flex items-center gap-1.5">
+                <Activity className="h-3.5 w-3.5 text-cyber-cyan" />
+                <span>Telemetría de Red y Hardware</span>
+              </div>
+              <span className="text-[10px] font-mono text-cyber-cyan font-semibold">ESTADO ÓPTIMO</span>
             </div>
 
             <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
-              <div className="p-1.5 bg-gray-900/60 rounded border border-gray-800">
-                <span className="text-gray-500 block text-[9px]">CPU</span>
+              <div className="p-1.5 bg-surface rounded border border-surface-high">
+                <span className="text-gray-500 block text-[9px]">CPU (TOKIO WORKER)</span>
                 <span className="text-gray-200 font-semibold">{isLive ? '2.4%' : '0.9%'}</span>
               </div>
-              <div className="p-1.5 bg-gray-900/60 rounded border border-gray-800">
-                <span className="text-gray-500 block text-[9px]">RAM</span>
-                <span className="text-gray-200 font-semibold">{isLive ? '42 MB' : '38 MB'}</span>
+              <div className="p-1.5 bg-surface rounded border border-surface-high">
+                <span className="text-gray-500 block text-[9px]">RAM (INGEST RUST)</span>
+                <span className="text-cyber-cyan font-semibold">{isLive ? '42 MB' : '38 MB'}</span>
               </div>
-              <div className="p-1.5 bg-gray-900/60 rounded border border-gray-800">
+              <div className="p-1.5 bg-surface rounded border border-surface-high">
                 <span className="text-gray-500 block text-[9px]">FPS DUAL</span>
-                <span className="text-gray-200 font-semibold">{isLive ? '60.0' : '0.0'}</span>
+                <span className="text-gray-200 font-semibold">{isLive ? '60.0 SOLID' : '0.0'}</span>
               </div>
-              <div className="p-1.5 bg-gray-900/60 rounded border border-gray-800">
-                <span className="text-gray-500 block text-[9px]">BITRATE TOTAL</span>
-                <span className="text-gray-200 font-semibold">
-                  {isLive ? '11,000 kbps' : '0 kbps'}
+              <div className="p-1.5 bg-surface rounded border border-surface-high">
+                <span className="text-gray-500 block text-[9px]">BITRATE AGREGADO</span>
+                <span className="text-cyber-cyan font-semibold">
+                  {isLive ? '11.0 Mbps' : '0.0 Mbps'}
                 </span>
               </div>
             </div>
@@ -542,16 +637,16 @@ export const App: React.FC = () => {
       />
 
       {/* Footer Status Bar */}
-      <footer className="h-7 border-t border-gray-800 bg-oxide-surface px-4 flex items-center justify-between text-[10px] font-mono text-gray-400">
+      <footer className="h-7 border-t border-surface-high bg-surface-lowest px-4 flex items-center justify-between text-[10px] font-mono text-gray-400 select-none">
         <div className="flex items-center gap-4">
-          <span>Motor: <span className="text-gray-200 font-semibold">Rust / Tokio</span></span>
+          <span>Motor: <span className="text-cyber-cyan font-semibold">Rust / Tokio</span></span>
           <span>Audio: <span className="text-gray-200 font-semibold">WASAPI DSP Puro</span></span>
           <span>Render: <span className="text-gray-200 font-semibold">wgpu / Zero-Copy</span></span>
-          <span className="text-orange-400 font-semibold">Creado con orgullo en Chile 🇨🇱</span>
+          <span className="text-oxide-rust font-semibold">Creado con orgullo en Chile 🇨🇱</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5">
-            <span className={`h-2 w-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-green-600'}`} />
+            <span className={`h-2 w-2 rounded-full ${isLive ? 'bg-cyber-green animate-pulse' : 'bg-cyber-green'}`} />
             {isLive ? 'Transmitiendo Dual 16:9 + 9:16' : 'Tauri v2 IPC Conectado'}
           </span>
         </div>

@@ -8,6 +8,7 @@ import {
   Radio,
   X,
   Check,
+  Smile,
 } from 'lucide-react';
 import { ChatChannelConfig } from '../types/studio';
 
@@ -68,27 +69,27 @@ const DEFAULT_MESSAGES: ChatMessageItem[] = [
 
 const PLATFORM_COLORS: Record<PlatformType, { bg: string; text: string; border: string }> = {
   Twitch: {
-    bg: 'bg-purple-900/30',
-    text: 'text-purple-400',
-    border: 'border-purple-500/40',
+    bg: 'bg-purple-950/40',
+    text: 'text-cyber-purple',
+    border: 'border-cyber-purple/40',
   },
   YouTube: {
-    bg: 'bg-red-900/30',
-    text: 'text-red-400',
-    border: 'border-red-500/40',
+    bg: 'bg-red-950/40',
+    text: 'text-cyber-red',
+    border: 'border-cyber-red/40',
   },
   TikTok: {
-    bg: 'bg-cyan-900/30',
-    text: 'text-cyan-400',
-    border: 'border-cyan-500/40',
+    bg: 'bg-cyan-950/40',
+    text: 'text-cyber-cyan',
+    border: 'border-cyber-cyan/40',
   },
   Kick: {
-    bg: 'bg-emerald-900/30',
-    text: 'text-emerald-400',
-    border: 'border-emerald-500/40',
+    bg: 'bg-emerald-950/40',
+    text: 'text-cyber-green',
+    border: 'border-cyber-green/40',
   },
   Instagram: {
-    bg: 'bg-pink-900/30',
+    bg: 'bg-pink-950/40',
     text: 'text-pink-400',
     border: 'border-pink-500/40',
   },
@@ -193,14 +194,14 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
 
   return (
     <div
-      className={`bg-oxide-surface border border-gray-800 rounded-lg flex flex-col h-full overflow-hidden shadow-md ${className}`}
+      className={`bg-surface-low border border-surface-high rounded flex flex-col h-full overflow-hidden shadow-sm select-none ${className}`}
     >
       {/* Encabezado del Chat */}
-      <div className="px-3.5 py-2.5 border-b border-gray-800 bg-gray-900/60 flex items-center justify-between select-none">
+      <div className="px-3 py-2 border-b border-surface-high bg-surface flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-oxide-rust" />
+          <MessageSquare className="h-3.5 w-3.5 text-cyber-cyan" />
           <h2 className="text-xs font-bold uppercase tracking-wider text-white">Chat Unificado</h2>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
+          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface-lowest text-gray-400 border border-surface-high">
             {filteredMessages.length} msgs
           </span>
         </div>
@@ -211,9 +212,9 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
             type="button"
             onClick={() => setIsChannelModalOpen(true)}
             title="Conectar canales de chat (Twitch, YouTube, TikTok, Kick)"
-            className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-gray-300 hover:text-white bg-gray-800/80 hover:bg-gray-700 border border-gray-700 transition-colors shadow-sm"
+            className="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono text-gray-300 hover:text-white bg-surface-high hover:bg-surface-highest border border-surface-high transition-colors shadow-xs"
           >
-            <Radio className="h-3 w-3 text-orange-400" />
+            <Radio className="h-3 w-3 text-oxide-rust" />
             <span className="hidden sm:inline">Canales</span>
           </button>
 
@@ -222,17 +223,37 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
               type="button"
               onClick={handlePopOut}
               title="Desacoplar ventana flotante"
-              className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-medium text-gray-300 hover:text-white bg-gray-800/80 hover:bg-gray-700 border border-gray-700 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono text-gray-300 hover:text-white bg-surface-high hover:bg-surface-highest border border-surface-high transition-colors shadow-xs"
             >
-              <ExternalLink className="h-3 w-3 text-orange-400" />
+              <ExternalLink className="h-3 w-3 text-cyber-cyan" />
               <span>Desacoplar Ventana</span>
             </button>
           )}
         </div>
       </div>
 
+      {/* Indicadores de Audiencia por Plataforma (Stitch Audience Metrics Pills) */}
+      <div className="grid grid-cols-4 gap-1 p-1.5 border-b border-surface-high bg-surface-lowest text-[10px] font-mono">
+        <div className="bg-surface p-1 rounded flex flex-col items-center border border-surface-high">
+          <span className="text-cyber-purple font-bold">TWITCH</span>
+          <span className="text-gray-200 font-semibold">3,420</span>
+        </div>
+        <div className="bg-surface p-1 rounded flex flex-col items-center border border-surface-high">
+          <span className="text-cyber-red font-bold">YOUTUBE</span>
+          <span className="text-gray-200 font-semibold">8,910</span>
+        </div>
+        <div className="bg-surface p-1 rounded flex flex-col items-center border border-surface-high">
+          <span className="text-cyber-cyan font-bold">TIKTOK</span>
+          <span className="text-gray-200 font-semibold">14,200</span>
+        </div>
+        <div className="bg-surface p-1 rounded flex flex-col items-center border border-surface-high">
+          <span className="text-cyber-green font-bold">KICK</span>
+          <span className="text-gray-200 font-semibold">1,850</span>
+        </div>
+      </div>
+
       {/* Selector de Filtros por Plataforma */}
-      <div className="px-3 py-2 border-b border-gray-800 bg-oxide-surface/80 flex items-center gap-1.5 overflow-x-auto scrollbar-thin">
+      <div className="px-2.5 py-1.5 border-b border-surface-high bg-surface flex items-center gap-1 overflow-x-auto">
         <Filter className="h-3 w-3 text-gray-500 shrink-0 mr-1" />
         {FILTER_PLATFORMS.map((platform) => {
           const isActive = selectedFilter === platform;
@@ -241,10 +262,10 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
               key={platform}
               type="button"
               onClick={() => setSelectedFilter(platform)}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all whitespace-nowrap border ${
+              className={`px-2 py-0.5 rounded text-[11px] font-mono transition-all whitespace-nowrap border ${
                 isActive
-                  ? 'bg-oxide-rust text-white border-orange-500 shadow-sm'
-                  : 'bg-gray-900/80 text-gray-400 hover:text-gray-200 border-gray-800 hover:border-gray-700'
+                  ? 'bg-oxide-rust text-white border-oxide-rust shadow-xs'
+                  : 'bg-surface-lowest text-gray-400 hover:text-gray-200 border-surface-high'
               }`}
             >
               {platform}
@@ -254,13 +275,13 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
       </div>
 
       {/* Barra de Búsqueda Rápida */}
-      <div className="px-3 py-1.5 border-b border-gray-800/60 bg-gray-900/30 flex items-center gap-2">
+      <div className="px-2.5 py-1 border-b border-surface-high bg-surface-lowest flex items-center gap-1.5">
         <Search className="h-3 w-3 text-gray-500" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Buscar en chat..."
+          placeholder="Buscar en chat unificado..."
           className="w-full bg-transparent text-[11px] text-gray-200 placeholder-gray-500 focus:outline-none"
         />
         {searchQuery && (
@@ -275,42 +296,42 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
       </div>
 
       {/* Lista de Mensajes del Chat */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs">
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-2 text-xs bg-surface-lowest">
         {filteredMessages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-gray-500 text-xs py-8">
+          <div className="h-full flex flex-col items-center justify-center text-gray-500 text-xs py-6">
             <MessageSquare className="h-6 w-6 mb-1 text-gray-600" />
             <span>No hay mensajes en este filtro</span>
           </div>
         ) : (
           filteredMessages.map((msg) => {
             const platformStyle = PLATFORM_COLORS[msg.platform] || {
-              bg: 'bg-gray-800',
+              bg: 'bg-surface',
               text: 'text-gray-300',
-              border: 'border-gray-700',
+              border: 'border-surface-high',
             };
 
             return (
               <div
                 key={msg.id}
-                className={`p-2 rounded-lg border transition-all ${
+                className={`p-2 rounded border transition-all ${
                   msg.isStreamer
-                    ? 'bg-orange-950/20 border-orange-700/40 ml-4'
-                    : 'bg-gray-900/60 border-gray-800/80 hover:border-gray-700'
+                    ? 'bg-surface-high/50 border-oxide-rust/40 ml-3'
+                    : 'bg-surface border-surface-high hover:border-gray-600'
                 }`}
               >
                 {/* Cabecera del Mensaje */}
-                <div className="flex items-center justify-between mb-1 gap-2">
+                <div className="flex items-center justify-between mb-0.5 gap-2">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {/* Insignia de Plataforma */}
                     <span
-                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded border font-mono ${platformStyle.bg} ${platformStyle.text} ${platformStyle.border}`}
+                      className={`text-[9px] font-bold px-1.5 py-0.2 rounded border font-mono ${platformStyle.bg} ${platformStyle.text} ${platformStyle.border}`}
                     >
                       {msg.platform}
                     </span>
 
-                    {/* Insignia de Rol / Rol en Español */}
+                    {/* Insignia de Rol */}
                     {msg.badge && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-gray-800 text-gray-300 border border-gray-700 font-medium">
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-surface-highest text-gray-300 border border-surface-high font-medium">
                         {msg.badge}
                       </span>
                     )}
@@ -318,7 +339,7 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
                     {/* Nombre del Autor */}
                     <span
                       className={`font-semibold ${
-                        msg.isStreamer ? 'text-orange-400' : 'text-gray-200'
+                        msg.isStreamer ? 'text-oxide-rust-light' : 'text-gray-200'
                       }`}
                     >
                       {msg.author}
@@ -332,7 +353,7 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
                 </div>
 
                 {/* Contenido del Mensaje */}
-                <p className="text-gray-300 text-[12px] leading-relaxed break-words">
+                <p className="text-gray-300 text-[11px] leading-relaxed break-words">
                   {msg.content}
                 </p>
               </div>
@@ -344,13 +365,13 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
       {/* Caja de Respuesta Rápida para el Streamer */}
       <form
         onSubmit={handleSendMessage}
-        className="p-2.5 border-t border-gray-800 bg-gray-900/60 flex items-center gap-2"
+        className="p-2 border-t border-surface-high bg-surface flex items-center gap-1.5"
       >
         {/* Selector de Plataforma de Envío */}
         <select
           value={selectedSendPlatform}
           onChange={(e) => setSelectedSendPlatform(e.target.value as PlatformType)}
-          className="bg-gray-950 border border-gray-800 rounded px-2 py-1.5 text-[11px] text-gray-300 font-medium focus:outline-none focus:border-orange-500"
+          className="bg-surface-lowest border border-surface-high rounded px-2 py-1 text-[11px] font-mono text-gray-300 focus:outline-none focus:border-oxide-rust"
         >
           <option value="Twitch">Twitch</option>
           <option value="YouTube">YouTube</option>
@@ -362,16 +383,25 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
           type="text"
           value={inputContent}
           onChange={(e) => setInputContent(e.target.value)}
-          placeholder="Enviar respuesta como streamer..."
-          className="flex-1 bg-gray-950/80 border border-gray-800 rounded px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+          placeholder="Responder a todas las plataformas..."
+          className="flex-1 bg-surface-lowest border border-surface-high rounded px-2.5 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-oxide-rust transition-colors"
         />
+
+        <button
+          type="button"
+          title="Emoticonos"
+          className="p-1 rounded text-gray-400 hover:text-white hover:bg-surface-high"
+        >
+          <Smile className="h-4 w-4" />
+        </button>
+
         <button
           type="submit"
           disabled={!inputContent.trim()}
-          className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+          className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-mono font-bold uppercase transition-all ${
             inputContent.trim()
-              ? 'bg-oxide-rust hover:bg-orange-600 text-white shadow-sm'
-              : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+              ? 'bg-oxide-rust hover:bg-orange-600 text-white shadow-xs'
+              : 'bg-surface-high text-gray-500 cursor-not-allowed'
           }`}
         >
           <Send className="h-3.5 w-3.5" />
@@ -382,8 +412,8 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
       {/* Modal Canales de Chat */}
       {isChannelModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-oxide-surface border border-gray-700 rounded-xl p-5 max-w-md w-full shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
+          <div className="bg-surface-low border border-surface-high rounded-xl p-5 max-w-md w-full shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-surface-high pb-2">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Radio className="h-4 w-4 text-oxide-rust" />
                 Conectar Canales de Chat en Vivo
@@ -400,14 +430,14 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
               Ingresa el nombre o usuario de tus canales para recibir y consolidar los mensajes:
             </p>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-2.5 text-xs">
               {localChannels.map((ch) => (
                 <div
                   key={ch.id}
-                  className="p-2.5 bg-gray-900 border border-gray-800 rounded-lg flex items-center justify-between gap-3"
+                  className="p-2.5 bg-surface border border-surface-high rounded flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-2 flex-1">
-                    <span className="font-semibold text-white uppercase text-[10px] w-16">
+                    <span className="font-semibold text-white uppercase text-[10px] w-16 font-mono">
                       {ch.platform}
                     </span>
                     <input
@@ -415,7 +445,7 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
                       value={ch.channelName}
                       onChange={(e) => handleUpdateChannelName(ch.id, e.target.value)}
                       placeholder={`Canal de ${ch.platform}...`}
-                      className="flex-1 bg-gray-950 border border-gray-700 rounded px-2.5 py-1 text-white text-xs focus:border-orange-500 focus:outline-none"
+                      className="flex-1 bg-surface-lowest border border-surface-high rounded px-2.5 py-1 text-white text-xs focus:border-oxide-rust focus:outline-none"
                     />
                   </div>
 
@@ -424,8 +454,8 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
                     onClick={() => handleToggleChannel(ch.id)}
                     className={`px-2.5 py-1 rounded text-[10px] font-semibold border transition-colors ${
                       ch.connected
-                        ? 'bg-green-950 text-green-400 border-green-800'
-                        : 'bg-gray-800 text-gray-400 border-gray-700'
+                        ? 'bg-cyber-green/20 text-cyber-green border-cyber-green/40'
+                        : 'bg-surface-high text-gray-400 border-surface-high'
                     }`}
                   >
                     {ch.connected ? 'Conectado' : 'Desconectado'}
@@ -434,11 +464,11 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
               ))}
             </div>
 
-            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-800">
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-surface-high">
               <button
                 type="button"
                 onClick={() => setIsChannelModalOpen(false)}
-                className="px-4 py-1.5 bg-oxide-rust hover:bg-orange-600 text-white rounded font-medium text-xs flex items-center gap-1 shadow-md"
+                className="px-4 py-1.5 bg-oxide-rust hover:bg-orange-600 text-white rounded font-medium text-xs flex items-center gap-1 shadow-md font-mono"
               >
                 <Check className="h-3.5 w-3.5" />
                 <span>Listo</span>
