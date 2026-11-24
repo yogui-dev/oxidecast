@@ -20,12 +20,15 @@ import {
   Layers,
   X,
   Check,
+  FlipHorizontal,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { SourceItem, SourceType, TargetCanvas } from '../types/studio';
 import {
   DEFAULT_SOURCE_TRANSFORM,
   DEFAULT_SOURCE_FILTERS,
 } from '../services/storage';
+import { SourceContextMenu } from './SourceContextMenu';
 
 interface SourceListProps {
   sources: SourceItem[];
@@ -37,6 +40,8 @@ interface SourceListProps {
   onMoveSource: (id: string, direction: 'up' | 'down') => void;
   onAddSource: (source: Omit<SourceItem, 'id'>) => void;
   onUpdateSource: (id: string, updates: Partial<SourceItem>) => void;
+  onOpenFilters?: (source: SourceItem) => void;
+  onDuplicateSource?: (source: SourceItem) => void;
 }
 
 export const SourceList: React.FC<SourceListProps> = ({
@@ -49,9 +54,16 @@ export const SourceList: React.FC<SourceListProps> = ({
   onMoveSource,
   onAddSource,
   onUpdateSource,
+  onOpenFilters,
+  onDuplicateSource,
 }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingSource, setEditingSource] = useState<SourceItem | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    sourceId: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Formulario de nueva fuente
   const [newType, setNewType] = useState<SourceType>('screen');
@@ -249,6 +261,16 @@ export const SourceList: React.FC<SourceListProps> = ({
               <div
                 key={src.id}
                 onClick={() => onSelectSource(src.id)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSelectSource(src.id);
+                  setContextMenu({
+                    sourceId: src.id,
+                    x: e.clientX,
+                    y: e.clientY,
+                  });
+                }}
                 className={`group flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors cursor-pointer border ${
                   isSelected
                     ? 'bg-surface-highest border-cyber-cyan/50 text-white shadow-xs'
@@ -290,6 +312,41 @@ export const SourceList: React.FC<SourceListProps> = ({
 
                 {/* Acciones por Fuente */}
                 <div className="flex items-center gap-0.5">
+                  {/* Botón Rápido Modo Espejo */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateSource(src.id, {
+                        transform: {
+                          ...src.transform,
+                          flipHorizontal: !src.transform?.flipHorizontal,
+                        },
+                      });
+                    }}
+                    className={`p-1 rounded hover:bg-surface-highest transition-colors ${
+                      src.transform?.flipHorizontal
+                        ? 'text-oxide-rust bg-oxide-rust/10 font-bold'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                    title="Modo Espejo (Voltear Horizontalmente)"
+                  >
+                    <FlipHorizontal className="h-3 w-3" />
+                  </button>
+
+                  {/* Botón Rápido Filtros */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenFilters?.(src);
+                    }}
+                    className="p-1 text-gray-400 hover:text-cyber-cyan rounded hover:bg-surface-highest transition-colors"
+                    title="Filtros de la fuente..."
+                  >
+                    <SlidersHorizontal className="h-3 w-3" />
+                  </button>
+
                   {/* Visibilidad */}
                   <button
                     type="button"
@@ -598,6 +655,112 @@ export const SourceList: React.FC<SourceListProps> = ({
           </div>
         </div>
       )}
+      {/* Menú Contextual Flotante Tipo OBS */}
+      {contextMenu && (() => {
+        const activeContextSource = sources.find((s) => s.id === contextMenu.sourceId);
+        if (!activeContextSource) return null;
+
+        return (
+          <SourceContextMenu
+            source={activeContextSource}
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onClose={() => setContextMenu(null)}
+            onToggleMirror={() => {
+              onUpdateSource(activeContextSource.id, {
+                transform: {
+                  ...activeContextSource.transform,
+                  flipHorizontal: !activeContextSource.transform?.flipHorizontal,
+                },
+              });
+            }}
+            onToggleFlipVertical={() => {
+              onUpdateSource(activeContextSource.id, {
+                transform: {
+                  ...activeContextSource.transform,
+                  flipVertical: !activeContextSource.transform?.flipVertical,
+                },
+              });
+            }}
+            onRotate={(deg) => {
+              onUpdateSource(activeContextSource.id, {
+                transform: {
+                  ...activeContextSource.transform,
+                  rotation: deg,
+                },
+              });
+            }}
+            onFitToScreen={() => {
+              onUpdateSource(activeContextSource.id, {
+                rect16_9: { x: 0, y: 0, width: 1920, height: 1080 },
+                transform: {
+                  ...activeContextSource.transform,
+                  scaleMode: 'fit',
+                },
+              });
+            }}
+            onStretchToScreen={() => {
+              onUpdateSource(activeContextSource.id, {
+                rect16_9: { x: 0, y: 0, width: 1920, height: 1080 },
+                transform: {
+                  ...activeContextSource.transform,
+                  scaleMode: 'stretch',
+                },
+              });
+            }}
+            onCenterToScreen={() => {
+              const w = activeContextSource.rect16_9.width;
+              const h = activeContextSource.rect16_9.height;
+              onUpdateSource(activeContextSource.id, {
+                rect16_9: {
+                  ...activeContextSource.rect16_9,
+                  x: Math.round((1920 - w) / 2),
+                  y: Math.round((1080 - h) / 2),
+                },
+                transform: {
+                  ...activeContextSource.transform,
+                  scaleMode: 'center',
+                },
+              });
+            }}
+            onResetTransform={() => {
+              onUpdateSource(activeContextSource.id, {
+                transform: { ...DEFAULT_SOURCE_TRANSFORM },
+              });
+            }}
+            onOpenFilters={() => {
+              onOpenFilters?.(activeContextSource);
+            }}
+            onOpenProperties={() => {
+              setEditingSource(activeContextSource);
+            }}
+            onDuplicate={() => {
+              if (onDuplicateSource) {
+                onDuplicateSource(activeContextSource);
+              } else {
+                onAddSource({
+                  ...activeContextSource,
+                  name: `${activeContextSource.name} (Copia)`,
+                  rect16_9: {
+                    ...activeContextSource.rect16_9,
+                    x: Math.min(
+                      activeContextSource.rect16_9.x + 40,
+                      1920 - activeContextSource.rect16_9.width
+                    ),
+                    y: Math.min(
+                      activeContextSource.rect16_9.y + 40,
+                      1080 - activeContextSource.rect16_9.height
+                    ),
+                  },
+                });
+              }
+            }}
+            onDelete={() => {
+              onDeleteSource(activeContextSource.id);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 };
