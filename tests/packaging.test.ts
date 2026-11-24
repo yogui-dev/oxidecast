@@ -27,6 +27,13 @@ describe('Configuración de Empaquetado y CI/CD de OxideCast', () => {
     expect(config.bundle.windows).toBeDefined();
     expect(config.bundle.windows.nsis).toBeDefined();
     expect(config.bundle.windows.nsis.installMode).toBe('currentUser');
+
+    // Validación de la ventana principal
+    expect(config.app).toBeDefined();
+    expect(config.app.windows).toBeDefined();
+    expect(config.app.windows.length).toBeGreaterThan(0);
+    expect(config.app.windows[0].label).toBe('main');
+    expect(config.app.windows[0].visible).toBe(true);
   });
 
   it('debe validar la existencia y estructura del pipeline de CI/CD en GitHub Actions (.github/workflows/release.yml)', () => {
