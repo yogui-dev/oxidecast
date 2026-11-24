@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Radio, Monitor, Sliders, Play, Square, Layers, Activity } from 'lucide-react';
+import { Radio, Monitor, Sliders, Play, Square, Layers, Activity, MessageSquare } from 'lucide-react';
 import { DualCanvas } from './components/DualCanvas';
+import { UnifiedChat } from './components/UnifiedChat';
 
 export const App: React.FC = () => {
   const [isLive, setIsLive] = useState(false);
+  const [isChatExpanded, setIsChatExpanded] = useState(true);
 
   const toggleBroadcast = () => {
     setIsLive((prev) => !prev);
@@ -104,8 +106,31 @@ export const App: React.FC = () => {
           </div>
         </section>
 
-        {/* Right Sidebar - Audio & Stream Telemetry */}
-        <aside className="col-span-4 flex flex-col gap-4">
+        {/* Right Sidebar - Audio, Telemetry & Unified Chat */}
+        <aside className="col-span-4 flex flex-col gap-3 overflow-y-auto">
+          {/* Chat Unificado con toggle para colapsar/expandir */}
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between mb-1.5 px-0.5">
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                <MessageSquare className="h-3.5 w-3.5 text-oxide-rust" />
+                Interacción Omnicanal
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsChatExpanded(!isChatExpanded)}
+                className="text-[11px] font-medium px-2 py-0.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 transition-colors shadow-sm"
+              >
+                {isChatExpanded ? 'Colapsar Chat' : 'Expandir Chat'}
+              </button>
+            </div>
+
+            {isChatExpanded && (
+              <div className="h-72 mb-1 flex flex-col">
+                <UnifiedChat />
+              </div>
+            )}
+          </div>
+
           {/* Audio Mixer */}
           <div className="flex-1 bg-oxide-surface border border-gray-800 rounded-lg p-3 flex flex-col">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
