@@ -1,4 +1,8 @@
 import { Scene, SourceItem, SourceType } from '../types/studio';
+import {
+  DEFAULT_SOURCE_TRANSFORM,
+  DEFAULT_SOURCE_FILTERS,
+} from '../services/storage';
 
 export interface ObsImportResult {
   success: boolean;
@@ -149,6 +153,8 @@ export function importObsCollection(jsonString: string): ObsImportResult {
             windowTitle: sourceDef?.settings?.window || undefined,
             color: sourceDef?.settings?.color || undefined,
           },
+          transform: { ...DEFAULT_SOURCE_TRANSFORM },
+          filters: { ...DEFAULT_SOURCE_FILTERS },
         };
 
         sources.push(sourceItem);

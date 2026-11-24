@@ -4,10 +4,72 @@ import {
   StreamingDestination,
   ChatChannelConfig,
   WorkspaceLayout,
+  SourceItem,
+  SourceTransform,
+  SourceFilterSettings,
 } from '../types/studio';
 
 const STORAGE_KEY = 'oxidecast_studio_profile_v1';
 const LAYOUT_STORAGE_KEY = 'oxidecast_workspace_layout_v1';
+
+export const DEFAULT_SOURCE_TRANSFORM: SourceTransform = {
+  flipHorizontal: false,
+  flipVertical: false,
+  rotation: 0,
+  scaleMode: 'fit',
+};
+
+export const DEFAULT_SOURCE_FILTERS: SourceFilterSettings = {
+  opacity: 1,
+  brightness: 1,
+  contrast: 1,
+  saturation: 1,
+  hueRotate: 0,
+  blur: 0,
+  grayscale: 0,
+  sepia: 0,
+  invert: false,
+  chromaKey: {
+    enabled: false,
+    color: '#00FF00',
+    similarity: 40,
+    smoothness: 20,
+  },
+  crop: {
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+};
+
+export function sanitizeSourceItem(item: Partial<SourceItem>): SourceItem {
+  return {
+    id: item.id || `src-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    name: item.name || 'Nueva Fuente',
+    type: item.type || 'screen',
+    targetCanvas: item.targetCanvas || 'both',
+    rect16_9: item.rect16_9 || { x: 0, y: 0, width: 1920, height: 1080 },
+    rect9_16: item.rect9_16,
+    visible: item.visible !== undefined ? item.visible : true,
+    locked: item.locked !== undefined ? item.locked : false,
+    color: item.color || '#3B82F6',
+    properties: item.properties || {},
+    transform: { ...DEFAULT_SOURCE_TRANSFORM, ...(item.transform || {}) },
+    filters: {
+      ...DEFAULT_SOURCE_FILTERS,
+      ...(item.filters || {}),
+      chromaKey: {
+        ...DEFAULT_SOURCE_FILTERS.chromaKey,
+        ...(item.filters?.chromaKey || {}),
+      },
+      crop: {
+        ...DEFAULT_SOURCE_FILTERS.crop,
+        ...(item.filters?.crop || {}),
+      },
+    },
+  };
+}
 
 export const DEFAULT_WORKSPACE_LAYOUT: WorkspaceLayout = {
   sidebarWidthPercent: 32,
@@ -48,97 +110,21 @@ export function resetWorkspaceLayout(): WorkspaceLayout {
 
 export const INITIAL_DEFAULT_SCENES: Scene[] = [
   {
-    id: 'scene-full-stream',
-    name: 'Escena 1 - Juego + Cámara',
+    id: 'scene-main',
+    name: 'Escena Principal',
     sources: [
       {
-        id: 'src-screen-main',
-        name: 'Captura de Pantalla 1',
+        id: 'src-screen-primary',
+        name: 'Captura de Pantalla (Monitor 1)',
         type: 'screen',
         targetCanvas: 'both',
         rect16_9: { x: 0, y: 0, width: 1920, height: 1080 },
         visible: true,
-        locked: true,
+        locked: false,
         color: '#3B82F6',
         properties: { displayIndex: 0 },
-      },
-      {
-        id: 'src-camera-pip',
-        name: 'Cámara Web HD',
-        type: 'camera',
-        targetCanvas: 'both',
-        rect16_9: { x: 1440, y: 810, width: 480, height: 270 },
-        visible: true,
-        locked: false,
-        color: '#FF5722',
-        properties: {},
-      },
-      {
-        id: 'src-watermark',
-        name: 'Distintivo de Emisión',
-        type: 'text',
-        targetCanvas: 'horizontal',
-        rect16_9: { x: 40, y: 40, width: 300, height: 50 },
-        visible: true,
-        locked: true,
-        color: '#F59E0B',
-        properties: { text: 'OxideCast 🇨🇱', fontSize: 24, textColor: '#FFFFFF' },
-      },
-    ],
-  },
-  {
-    id: 'scene-just-chatting',
-    name: 'Escena 2 - Solo Cámara',
-    sources: [
-      {
-        id: 'src-camera-full',
-        name: 'Cámara Web Pantalla Completa',
-        type: 'camera',
-        targetCanvas: 'both',
-        rect16_9: { x: 0, y: 0, width: 1920, height: 1080 },
-        visible: true,
-        locked: true,
-        color: '#FF5722',
-        properties: {},
-      },
-      {
-        id: 'src-chat-overlay',
-        name: 'Widget de Chat',
-        type: 'browser',
-        targetCanvas: 'vertical',
-        rect16_9: { x: 50, y: 600, width: 450, height: 400 },
-        visible: true,
-        locked: false,
-        color: '#8B5CF6',
-        properties: { url: 'https://streamlabs.com/widgets/chat-box/v1/...' },
-      },
-    ],
-  },
-  {
-    id: 'scene-pause-screen',
-    name: 'Escena 3 - En Pausa / Volvemos',
-    sources: [
-      {
-        id: 'src-pause-background',
-        name: 'Fondo Oscuro',
-        type: 'color',
-        targetCanvas: 'both',
-        rect16_9: { x: 0, y: 0, width: 1920, height: 1080 },
-        visible: true,
-        locked: true,
-        color: '#1E293B',
-        properties: { backgroundColor: '#0B0F19' },
-      },
-      {
-        id: 'src-pause-text',
-        name: 'Texto de Pausa',
-        type: 'text',
-        targetCanvas: 'both',
-        rect16_9: { x: 560, y: 490, width: 800, height: 100 },
-        visible: true,
-        locked: true,
-        color: '#F59E0B',
-        properties: { text: '¡Transmisión en pausa! Volvemos en breve...', fontSize: 32, textColor: '#FFA500' },
+        transform: { ...DEFAULT_SOURCE_TRANSFORM },
+        filters: { ...DEFAULT_SOURCE_FILTERS },
       },
     ],
   },
@@ -205,7 +191,7 @@ export const INITIAL_DEFAULT_CHANNELS: ChatChannelConfig[] = [
 export const INITIAL_DEFAULT_CONFIG: StudioConfig = {
   version: '1.0.0',
   scenes: INITIAL_DEFAULT_SCENES,
-  activeSceneId: 'scene-full-stream',
+  activeSceneId: 'scene-main',
   destinations: INITIAL_DEFAULT_DESTINATIONS,
   chatChannels: INITIAL_DEFAULT_CHANNELS,
   audioSettings: {
@@ -229,9 +215,17 @@ export function loadStudioConfig(): StudioConfig {
       parsed.scenes.length > 0 &&
       typeof parsed.activeSceneId === 'string'
     ) {
+      const sanitizedScenes = parsed.scenes.map((scene: any) => ({
+        ...scene,
+        sources: Array.isArray(scene.sources)
+          ? scene.sources.map((s: any) => sanitizeSourceItem(s))
+          : [],
+      }));
+
       return {
         ...INITIAL_DEFAULT_CONFIG,
         ...parsed,
+        scenes: sanitizedScenes,
       };
     }
     return INITIAL_DEFAULT_CONFIG;

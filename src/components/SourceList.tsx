@@ -22,6 +22,10 @@ import {
   Check,
 } from 'lucide-react';
 import { SourceItem, SourceType, TargetCanvas } from '../types/studio';
+import {
+  DEFAULT_SOURCE_TRANSFORM,
+  DEFAULT_SOURCE_FILTERS,
+} from '../services/storage';
 
 interface SourceListProps {
   sources: SourceItem[];
@@ -120,6 +124,8 @@ export const SourceList: React.FC<SourceListProps> = ({
         url: newType === 'browser' ? newUrl : undefined,
         backgroundColor: newType === 'color' ? newColor : undefined,
       },
+      transform: { ...DEFAULT_SOURCE_TRANSFORM },
+      filters: { ...DEFAULT_SOURCE_FILTERS },
     });
 
     setIsAddModalOpen(false);

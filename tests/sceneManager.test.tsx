@@ -2,6 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SceneList } from '../src/components/SceneList';
 import { Scene } from '../src/types/studio';
+import {
+  DEFAULT_SOURCE_TRANSFORM,
+  DEFAULT_SOURCE_FILTERS,
+} from '../src/services/storage';
 
 describe('Gestor de Escenas de OxideCast (SceneList)', () => {
   const mockScenes: Scene[] = [
@@ -19,6 +23,8 @@ describe('Gestor de Escenas de OxideCast (SceneList)', () => {
           locked: false,
           color: '#3B82F6',
           properties: {},
+          transform: { ...DEFAULT_SOURCE_TRANSFORM },
+          filters: { ...DEFAULT_SOURCE_FILTERS },
         },
       ],
     },

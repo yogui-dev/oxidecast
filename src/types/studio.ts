@@ -25,6 +25,37 @@ export interface SourceProperties {
   aspectRatioLock?: boolean;
 }
 
+export interface SourceTransform {
+  flipHorizontal: boolean; // Modo espejo
+  flipVertical: boolean;
+  rotation: 0 | 90 | 180 | 270;
+  scaleMode: 'fit' | 'stretch' | 'center' | 'custom';
+}
+
+export interface SourceFilterSettings {
+  opacity: number;
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  hueRotate: number;
+  blur: number;
+  grayscale: number;
+  sepia: number;
+  invert: boolean;
+  chromaKey: {
+    enabled: boolean;
+    color: string;
+    similarity: number;
+    smoothness: number;
+  };
+  crop: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
+}
+
 export interface SourceItem {
   id: string;
   name: string;
@@ -36,6 +67,8 @@ export interface SourceItem {
   locked: boolean;
   color: string;
   properties: SourceProperties;
+  transform: SourceTransform;
+  filters: SourceFilterSettings;
 }
 
 export interface Scene {

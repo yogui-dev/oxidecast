@@ -15,6 +15,10 @@ import {
   LayerType,
 } from '../utils/layoutMath';
 import { Scene, SourceItem } from '../types/studio';
+import {
+  DEFAULT_SOURCE_TRANSFORM,
+  DEFAULT_SOURCE_FILTERS,
+} from '../services/storage';
 
 export interface VisualLayer {
   id: string;
@@ -78,6 +82,8 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
             locked: true,
             color: '#3B82F6',
             properties: {},
+            transform: { ...DEFAULT_SOURCE_TRANSFORM },
+            filters: { ...DEFAULT_SOURCE_FILTERS },
           },
           {
             id: 'webcam-source',
@@ -89,6 +95,8 @@ export const DualCanvas: React.FC<DualCanvasProps> = ({
             locked: false,
             color: '#FF5722',
             properties: {},
+            transform: { ...DEFAULT_SOURCE_TRANSFORM },
+            filters: { ...DEFAULT_SOURCE_FILTERS },
           },
         ];
 

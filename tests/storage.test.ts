@@ -12,8 +12,8 @@ describe('Servicio de Persistencia Local de OxideCast', () => {
 
   it('debe devolver la configuración inicial por defecto si el storage está vacío', () => {
     const config = loadStudioConfig();
-    expect(config.scenes.length).toBeGreaterThanOrEqual(3);
-    expect(config.activeSceneId).toBe('scene-full-stream');
+    expect(config.scenes.length).toBeGreaterThanOrEqual(1);
+    expect(config.activeSceneId).toBe('scene-main');
     expect(config.destinations.length).toBeGreaterThanOrEqual(4);
     expect(config.chatChannels.length).toBeGreaterThanOrEqual(3);
   });
@@ -42,6 +42,6 @@ describe('Servicio de Persistencia Local de OxideCast', () => {
   it('debe manejar datos corruptos en localStorage volviendo a los valores por defecto', () => {
     localStorage.setItem('oxidecast_studio_profile_v1', '{ corrupt json');
     const loaded = loadStudioConfig();
-    expect(loaded.activeSceneId).toBe('scene-full-stream');
+    expect(loaded.activeSceneId).toBe('scene-main');
   });
 });
