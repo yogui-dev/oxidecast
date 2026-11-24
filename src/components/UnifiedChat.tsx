@@ -5,7 +5,11 @@ import {
   Send,
   Search,
   Filter,
+  Radio,
+  X,
+  Check,
 } from 'lucide-react';
+import { ChatChannelConfig } from '../types/studio';
 
 export type PlatformType = 'Twitch' | 'YouTube' | 'TikTok' | 'Kick' | 'Instagram';
 
@@ -102,23 +106,34 @@ export interface UnifiedChatProps {
   isPopOut?: boolean;
   onPopOut?: () => void;
   className?: string;
+  channels?: ChatChannelConfig[];
+  onUpdateChannels?: (channels: ChatChannelConfig[]) => void;
 }
 
 export const UnifiedChat: React.FC<UnifiedChatProps> = ({
   isPopOut = false,
   onPopOut,
   className = '',
+  channels = [
+    { id: 'ch-twitch', platform: 'twitch', channelName: 'yogui_dev', connected: true },
+    { id: 'ch-youtube', platform: 'youtube', channelName: '@YoguiDev', connected: true },
+    { id: 'ch-tiktok', platform: 'tiktok', channelName: '@yoguidev', connected: true },
+    { id: 'ch-kick', platform: 'kick', channelName: 'yoguidev', connected: false },
+  ],
+  onUpdateChannels,
 }) => {
   const [messages, setMessages] = useState<ChatMessageItem[]>(DEFAULT_MESSAGES);
   const [selectedFilter, setSelectedFilter] = useState<PlatformType | 'Todos'>('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [inputContent, setInputContent] = useState('');
+  const [selectedSendPlatform, setSelectedSendPlatform] = useState<PlatformType>('Twitch');
+  const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
+  const [localChannels, setLocalChannels] = useState<ChatChannelConfig[]>(channels);
 
   const handlePopOut = () => {
     if (onPopOut) {
       onPopOut();
     } else {
-      // Intento estándar de ventana pop-out desacoplada
       try {
         if (typeof window !== 'undefined' && window.open) {
           window.open('/chat-popout', '_blank', 'width=420,height=700,menubar=no,toolbar=no');
@@ -135,7 +150,7 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
 
     const newMsg: ChatMessageItem = {
       id: `streamer-msg-${Date.now()}`,
-      platform: 'Twitch',
+      platform: selectedSendPlatform,
       author: 'Streamer (Tú)',
       content: inputContent.trim(),
       timestamp: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
@@ -145,6 +160,26 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
 
     setMessages((prev) => [...prev, newMsg]);
     setInputContent('');
+  };
+
+  const handleToggleChannel = (id: string) => {
+    const updated = localChannels.map((c) =>
+      c.id === id ? { ...c, connected: !c.connected } : c
+    );
+    setLocalChannels(updated);
+    if (onUpdateChannels) {
+      onUpdateChannels(updated);
+    }
+  };
+
+  const handleUpdateChannelName = (id: string, name: string) => {
+    const updated = localChannels.map((c) =>
+      c.id === id ? { ...c, channelName: name } : c
+    );
+    setLocalChannels(updated);
+    if (onUpdateChannels) {
+      onUpdateChannels(updated);
+    }
   };
 
   const filteredMessages = messages.filter((msg) => {
@@ -170,17 +205,30 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
           </span>
         </div>
 
-        {!isPopOut && (
+        <div className="flex items-center gap-1.5">
+          {/* Botón Configurar Canales */}
           <button
             type="button"
-            onClick={handlePopOut}
-            title="Desacoplar ventana flotante"
-            className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-medium text-gray-300 hover:text-white bg-gray-800/80 hover:bg-gray-700 border border-gray-700 transition-colors shadow-sm"
+            onClick={() => setIsChannelModalOpen(true)}
+            title="Conectar canales de chat (Twitch, YouTube, TikTok, Kick)"
+            className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-gray-300 hover:text-white bg-gray-800/80 hover:bg-gray-700 border border-gray-700 transition-colors shadow-sm"
           >
-            <ExternalLink className="h-3 w-3 text-orange-400" />
-            <span>Desacoplar Ventana</span>
+            <Radio className="h-3 w-3 text-orange-400" />
+            <span className="hidden sm:inline">Canales</span>
           </button>
-        )}
+
+          {!isPopOut && (
+            <button
+              type="button"
+              onClick={handlePopOut}
+              title="Desacoplar ventana flotante"
+              className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-medium text-gray-300 hover:text-white bg-gray-800/80 hover:bg-gray-700 border border-gray-700 transition-colors shadow-sm"
+            >
+              <ExternalLink className="h-3 w-3 text-orange-400" />
+              <span>Desacoplar Ventana</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Selector de Filtros por Plataforma */}
@@ -298,6 +346,18 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
         onSubmit={handleSendMessage}
         className="p-2.5 border-t border-gray-800 bg-gray-900/60 flex items-center gap-2"
       >
+        {/* Selector de Plataforma de Envío */}
+        <select
+          value={selectedSendPlatform}
+          onChange={(e) => setSelectedSendPlatform(e.target.value as PlatformType)}
+          className="bg-gray-950 border border-gray-800 rounded px-2 py-1.5 text-[11px] text-gray-300 font-medium focus:outline-none focus:border-orange-500"
+        >
+          <option value="Twitch">Twitch</option>
+          <option value="YouTube">YouTube</option>
+          <option value="TikTok">TikTok</option>
+          <option value="Kick">Kick</option>
+        </select>
+
         <input
           type="text"
           value={inputContent}
@@ -318,6 +378,75 @@ export const UnifiedChat: React.FC<UnifiedChatProps> = ({
           <span>Enviar</span>
         </button>
       </form>
+
+      {/* Modal Canales de Chat */}
+      {isChannelModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-oxide-surface border border-gray-700 rounded-xl p-5 max-w-md w-full shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Radio className="h-4 w-4 text-oxide-rust" />
+                Conectar Canales de Chat en Vivo
+              </h3>
+              <button
+                onClick={() => setIsChannelModalOpen(false)}
+                className="text-gray-400 hover:text-white p-1"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-400 mb-3">
+              Ingresa el nombre o usuario de tus canales para recibir y consolidar los mensajes:
+            </p>
+
+            <div className="space-y-3 text-xs">
+              {localChannels.map((ch) => (
+                <div
+                  key={ch.id}
+                  className="p-2.5 bg-gray-900 border border-gray-800 rounded-lg flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="font-semibold text-white uppercase text-[10px] w-16">
+                      {ch.platform}
+                    </span>
+                    <input
+                      type="text"
+                      value={ch.channelName}
+                      onChange={(e) => handleUpdateChannelName(ch.id, e.target.value)}
+                      placeholder={`Canal de ${ch.platform}...`}
+                      className="flex-1 bg-gray-950 border border-gray-700 rounded px-2.5 py-1 text-white text-xs focus:border-orange-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleChannel(ch.id)}
+                    className={`px-2.5 py-1 rounded text-[10px] font-semibold border transition-colors ${
+                      ch.connected
+                        ? 'bg-green-950 text-green-400 border-green-800'
+                        : 'bg-gray-800 text-gray-400 border-gray-700'
+                    }`}
+                  >
+                    {ch.connected ? 'Conectado' : 'Desconectado'}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-800">
+              <button
+                type="button"
+                onClick={() => setIsChannelModalOpen(false)}
+                className="px-4 py-1.5 bg-oxide-rust hover:bg-orange-600 text-white rounded font-medium text-xs flex items-center gap-1 shadow-md"
+              >
+                <Check className="h-3.5 w-3.5" />
+                <span>Listo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
